@@ -1,0 +1,62 @@
+version: '3.5'
+
+networks:
+  internal:
+    name: ec-iel-internal
+
+services:
+
+  localstack:
+    image: localstack/localstack
+    container_name: ec-iel-localstack
+    environment:
+      - EDGE_PORT=10001
+      - HOSTNAME_EXTERNAL=0.0.0.0
+    restart: on-failure
+    networks:
+      - internal
+
+  ganache-cli:
+    image: trufflesuite/ganache-cli
+    container_name: ec-iel-ganache-cli
+    volumes:
+      - '${dockerstagedir:-.}/ganache-cli/database:/ganache-cli/database'
+    networks:
+      - internal
+    command: >
+        ganache-cli
+        --acctKeys /ganache-cli/account-keys.json
+        --db /ganache-cli/database
+        --hostname 0.0.0.0
+        --port 8585
+        --networkId 15
+        --blockTime 0
+        --accounts 5
+        --unlock "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+        --deterministic
+        --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
+
+  truffle:
+    image: ethereum-channel/inbound-event-listener/truffle
+    container_name: ec-iel-truffle
+    build:
+      context: ${dockerstagedir:-.}/truffle
+      dockerfile: Dockerfile
+    networks:
+      - internal
+    volumes:
+      - '${dockerstagedir:-.}/contracts:/truffle/contracts'
+
+  worker:
+    image: ethereum-channel/inbound-event-listener/worker
+    container_name: ec-iel-worker
+    build:
+      context: ${dockerstagedir:-.}/worker
+      dockerfile: docker/Dockerfile
+    volumes:
+      - '${dockerstagedir:-.}/worker:/worker'
+      - '${dockerstagedir:-.}/contracts:/contracts'
+    networks:
+      - internal
+    environment:
+      BLOCKCHAIN_ENPOINT_URI: ws://ec-iel-ganache-cli:8585
