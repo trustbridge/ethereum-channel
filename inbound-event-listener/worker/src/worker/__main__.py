@@ -1,3 +1,3 @@
-from . import run
+from . import Worker
 
-run()
+Worker().run()

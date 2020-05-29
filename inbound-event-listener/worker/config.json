@@ -1,0 +1,21 @@
+{
+  "Receivers": [
+    {
+      "Id": "ConsoleReceiver",
+      "Type": "PRINT"
+    }
+  ],
+  "Listeners": [
+    {
+      "Event":{
+        "Name": "EventOne",
+        "Filter": {
+          "fromBlock": "latest"
+        }
+      },
+      "Receivers": [
+        "ConsoleReceiver"
+      ]
+    }
+  ]
+}
