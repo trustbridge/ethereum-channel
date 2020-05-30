@@ -1,5 +1,5 @@
 import os
-import json
+import yaml
 import time
 from web3 import Web3
 from src.contract import Contract
