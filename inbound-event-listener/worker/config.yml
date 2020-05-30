@@ -1,0 +1,36 @@
+---
+  Receivers:
+    -
+      Id: LogReceiverOne
+      Type: LOG
+    -
+      Id: LogReceiverTwo
+      Type: LOG
+  Listeners:
+    -
+      Event:
+        Name: EventOne
+        Filter:
+          fromBlock: latest
+      Receivers:
+        - LogReceiverOne
+    -
+      Event:
+        Name: EventTwo
+        Filter:
+          fromBlock: latest
+      Receivers:
+        - LogReceiverTwo
+    -
+      Event:
+        Name: EventThree
+        Filter:
+          fromBlock: latest
+      Receivers:
+        - LogReceiverOne
+        - LogReceiverTwo
+  Worker:
+    Blockhain:
+      URI: ws://ec-iel-ganache-cli:8585
+    General:
+      PollingInterval: 5

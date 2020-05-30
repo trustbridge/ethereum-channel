@@ -7,8 +7,8 @@ class Receiver:
         type = config['Type']
         if type == 'SQS':
             return SQSReceiver(config)
-        elif type == 'PRINT':
-            return PrintReceiver(config)
+        elif type == 'LOG':
+            return LogReceiver(config)
 
     @staticmethod
     def mapping_from_list(receiver_list):
@@ -30,7 +30,7 @@ class SQSReceiver(Receiver):
         self.queue.send_message(**kwargs)
 
 
-class PrintReceiver(Receiver):
+class LogReceiver(Receiver):
     def __init__(self, config):
         self.id = config['Id']
 

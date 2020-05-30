@@ -59,8 +59,6 @@ services:
     networks:
       - internal
     environment:
-      BLOCKCHAIN_ENPOINT_URI: ws://ec-iel-ganache-cli:8585
       EVENT_EMITTER_ABI_JSON: /contracts/EventEmitter/build/contracts/EventEmitter.json
       EVENT_EMITTER_ADDRESS: /contracts/EventEmitter/address/EventEmitter.address
-      CONFIG_FILE: /worker/config.json
-      POLLING_INTERVAL: 5
+      CONFIG_FILE: /worker/config.yml
