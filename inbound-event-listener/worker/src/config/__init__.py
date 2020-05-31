@@ -1,3 +1,6 @@
+import os
+import json
+import yaml
 from marshmallow import Schema, fields, validate, ValidationError, pre_load
 from marshmallow.fields import Nested
 
@@ -15,20 +18,17 @@ class PolyNested(Nested):
         raise ValidationError("Can't deserialize the field")
 
 
-class Receiver(Schema):
-    Id = fields.String(required=True)
-    Type = fields.String(required=True)
-
-
-class LogReceiver(Receiver):
+class LogReceiver(Schema):
+    Id = fields.String(required=True, validate=validate.Length(min=1))
     Type = fields.String(required=True, validate=validate.Equal('LOG'))
 
 
-class SQSReceiver(Receiver):
+class SQSReceiver(Schema):
+    Id = fields.String(required=True, validate=validate.Length(min=1))
     Type = fields.String(required=True, validate=validate.Equal('SQS'))
+    QueueUrl = fields.String(required=True)
     AWSConfig = fields.Dict(default={})
     MessageConfig = fields.Dict(default={})
-    QueueUrl = fields.String(required=True)
 
 
 class Worker(Schema):
@@ -38,8 +38,13 @@ class Worker(Schema):
     class __General(Schema):
         PollingInterval = fields.Integer(validate=validate.Range(min=1), default=5)
 
-    Blockhain = fields.Nested(__Blockhain)
-    General = fields.Nested(__General)
+    class __Contract(Schema):
+        ABI = fields.String(required=True, validate=validate.Length(min=1))
+        Address = fields.String(required=True, validate=validate.Length(min=1))
+
+    Blockhain = fields.Nested(__Blockhain, required=True)
+    General = fields.Nested(__General, required=True)
+    Contract = fields.Nested(__Contract, required=True)
 
 
 class Listener(Schema):
@@ -53,16 +58,30 @@ class Listener(Schema):
 
 
 class Config(Schema):
+
+    @staticmethod
+    def from_file(filename):
+        name, ext = os.path.splitext(filename)
+        with open(filename, 'rt') as f:
+            if ext in ['.yaml', '.yml']:
+                data = yaml.safe_load(f)
+            elif ext in ['.json']:
+                data = json.load(f)
+            else:
+                raise ValueError(f'Unsupported config file extension "{ext}"')
+        return Config().load(data)
+
     Receivers = fields.List(
         PolyNested([
             LogReceiver,
             SQSReceiver
         ]),
-        validate=validate.Length(min=1)
+        validate=validate.Length(min=1),
+        required=True
     )
 
-    Listeners = fields.List(fields.Nested(Listener), validate=validate.Length(min=1))
-    Worker = fields.Nested(Worker)
+    Listeners = fields.List(fields.Nested(Listener), validate=validate.Length(min=1), required=True)
+    Worker = fields.Nested(Worker, required=True)
 
     @pre_load
     def validate_parameters(self, data, **kwargs):

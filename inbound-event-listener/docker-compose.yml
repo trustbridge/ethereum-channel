@@ -59,6 +59,4 @@ services:
     networks:
       - internal
     environment:
-      EVENT_EMITTER_ABI_JSON: /contracts/EventEmitter/build/contracts/EventEmitter.json
-      EVENT_EMITTER_ADDRESS: /contracts/EventEmitter/address/EventEmitter.address
       CONFIG_FILE: /worker/config.yml
