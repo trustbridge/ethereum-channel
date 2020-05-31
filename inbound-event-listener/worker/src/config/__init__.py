@@ -2,6 +2,7 @@ from marshmallow import Schema, fields, validate, ValidationError, pre_load
 from marshmallow.fields import Nested
 
 
+# TODO: improve error message
 class PolyNested(Nested):
     def _deserialize(self, value, attr, data, **kwarg):
         for schema in self.nested:
@@ -59,6 +60,7 @@ class Config(Schema):
         ]),
         validate=validate.Length(min=1)
     )
+
     Listeners = fields.List(fields.Nested(Listener), validate=validate.Length(min=1))
     Worker = fields.Nested(Worker)
 
