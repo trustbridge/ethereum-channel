@@ -1,3 +1,3 @@
 from . import Worker
 
-Worker().run()
+Worker().run()  # pragma: no cover

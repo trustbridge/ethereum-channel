@@ -1,5 +1,6 @@
 import boto3
 from src import config
+from src.loggers import logging
 
 
 class Receiver:
@@ -21,16 +22,21 @@ class Receiver:
 class SQSReceiver(Receiver):
     def __init__(self, config_obj):
         self.config = config_obj
+        self.__logger = logging.getLogger(self.config.Id)
         self.__queue = boto3.resource('sqs', **config_obj.Config.AWS).Queue(config_obj.QueueUrl)
 
     def send(self, message):
         kwargs = {**self.config.Config.Message, 'MessageBody': message}
+        self.__logger.info('Sending the message to %s', self.config.QueueUrl)
+        self.__logger.info(message)
         self.__queue.send_message(**kwargs)
+        self.__logger.info('Message sent')
 
 
 class LogReceiver(Receiver):
     def __init__(self, config_obj):
         self.config = config_obj
+        self.__logger = logging.getLogger(self.config.Id)
 
     def send(self, message):
-        print(f'[{self.config.Id}]:{message}')
+        self.__logger.info(message)
