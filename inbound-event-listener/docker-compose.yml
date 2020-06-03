@@ -69,3 +69,4 @@ services:
       CONFIG_FILE: /worker/config.yml
       AWS_ACCESS_KEY_ID: access
       AWS_SECRET_ACCESS_KEY: secretaccess
+      TEST_ETH_ACCOUNT: "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
