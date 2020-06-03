@@ -17,8 +17,11 @@ class Worker:
         receivers = Receiver.mapping_from_list(config.Receivers)
         self.listeners = Listener.from_config_list(web3, contract, receivers, config.Listeners)
 
+    def poll(self):
+        for listener in self.listeners:
+            listener.poll()
+
     def run(self):
         while True:
-            for listener in self.listeners:
-                listener.poll()
+            self.poll()
             time.sleep(self.config.Worker.General.PollingInterval)

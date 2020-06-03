@@ -48,11 +48,15 @@ class LogReceiver(Receiver):
 
 
 class SQSReceiver(Receiver):
+    class __Config:
+        def __init__(self, config_dict):
+            self.Message = config_dict['Message']
+            self.AWS = config_dict['AWS']
+
     def __init__(self, config_dict):
         super().__init__(config_dict)
         self.QueueUrl = config_dict['QueueUrl']
-        self.AWSConfig = config_dict['AWSConfig']
-        self.MessageConfig = config_dict['MessageConfig']
+        self.Config = self.__Config(config_dict['Config'])
 
 
 class Config:

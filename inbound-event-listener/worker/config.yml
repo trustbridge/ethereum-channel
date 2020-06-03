@@ -1,11 +1,19 @@
 ---
   Receivers:
     -
-      Id: LogReceiverOne
+      Id: LogReceiver-1
       Type: LOG
     -
-      Id: LogReceiverTwo
+      Id: LogReceiver-2
       Type: LOG
+    -
+      Id: SQSReceiver-1
+      Type: SQS
+      QueueUrl: http://ec-iel-localstack:10001/queue/queue-1
+      Config:
+        AWS:
+          region_name: us-east-1
+          endpoint_url: http://ec-iel-localstack:10001
   Listeners:
     -
       Event:
@@ -13,22 +21,23 @@
         Filter:
           fromBlock: latest
       Receivers:
-        - LogReceiverOne
+        - LogReceiver-1
+        - SQSReceiver-1
     -
       Event:
         Name: EventTwo
         Filter:
           fromBlock: latest
       Receivers:
-        - LogReceiverTwo
+        - LogReceiver-2
     -
       Event:
         Name: EventThree
         Filter:
           fromBlock: latest
       Receivers:
-        - LogReceiverOne
-        - LogReceiverTwo
+        - LogReceiver-1
+        - LogReceiver-2
   Worker:
     Blockchain:
       URI: ws://ec-iel-ganache-cli:8585

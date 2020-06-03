@@ -2,7 +2,6 @@ from marshmallow import Schema, fields, validate, ValidationError
 from marshmallow.fields import Nested
 
 
-# TODO: improve error message
 class PolyNested(Nested):
     def _deserialize(self, value, attr, data, **kwarg):
         for schema in self.nested:
@@ -12,7 +11,7 @@ class PolyNested(Nested):
             except ValidationError:
                 continue
             return data
-        raise ValidationError("Can't deserialize the field")
+        raise ValidationError("Can't deserialize the field using any known receiver schema")
 
 
 class Worker(Schema):
@@ -20,7 +19,7 @@ class Worker(Schema):
         URI = fields.Str()
 
     class __General(Schema):
-        PollingInterval = fields.Integer(validate=validate.Range(min=1), default=5)
+        PollingInterval = fields.Integer(validate=validate.Range(min=1), missing=5)
 
     class __Contract(Schema):
         ABI = fields.String(required=True, validate=validate.Length(min=1))
@@ -34,7 +33,7 @@ class Worker(Schema):
 class Listener(Schema):
     class __Event(Schema):
         Name = fields.String()
-        Filter = fields.Dict(default=dict(fromBlock='lastest'))
+        Filter = fields.Dict(missing=dict(fromBlock='lastest'))
     Event = fields.Nested(__Event)
     Receivers = fields.List(fields.String(), validate=validate.Length(min=1))
 
@@ -45,11 +44,13 @@ class LogReceiver(Schema):
 
 
 class SQSReceiver(Schema):
+    class __Config(Schema):
+        AWS = fields.Dict(required=True)
+        Message = fields.Dict(missing={})
     Id = fields.String(required=True, validate=validate.Length(min=1))
     Type = fields.String(required=True, validate=validate.Equal('SQS'))
     QueueUrl = fields.String(required=True)
-    AWSConfig = fields.Dict(default={})
-    MessageConfig = fields.Dict(default={})
+    Config = fields.Nested(__Config, required=True)
 
 
 class Config(Schema):

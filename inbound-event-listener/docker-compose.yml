@@ -10,11 +10,18 @@ services:
     image: localstack/localstack
     container_name: ec-iel-localstack
     environment:
-      - EDGE_PORT=10001
-      - HOSTNAME_EXTERNAL=0.0.0.0
+      EDGE_PORT: 10001
+      HOSTNAME_EXTERNAL: ec-iel-localstack
+      SERVICES: sqs
+      DEFAULT_REGION: us-east-1
+      LAMBDA_REMOTE_DOCKER: 0
+      AWS_ACCESS_KEY_ID: access
+      AWS_SECRET_ACCESS_KEY: secretaccess
     restart: on-failure
     networks:
       - internal
+    volumes:
+      - '${dockerstagedir:-.}/localstack:/docker-entrypoint-initaws.d'
 
   ganache-cli:
     image: trufflesuite/ganache-cli
@@ -60,3 +67,5 @@ services:
       - internal
     environment:
       CONFIG_FILE: /worker/config.yml
+      AWS_ACCESS_KEY_ID: access
+      AWS_SECRET_ACCESS_KEY: secretaccess

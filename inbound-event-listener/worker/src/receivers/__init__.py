@@ -21,11 +21,11 @@ class Receiver:
 class SQSReceiver(Receiver):
     def __init__(self, config_obj):
         self.config = config_obj
-        self.__queue = boto3.resource('sqs', **config_obj.Service).Queue(config_obj.QueueUrl)
+        self.__queue = boto3.resource('sqs', **config_obj.Config.AWS).Queue(config_obj.QueueUrl)
 
     def send(self, message):
-        kwargs = {**self.config.Message, 'MessageBody': message}
-        self.queue.send_message(**kwargs)
+        kwargs = {**self.config.Config.Message, 'MessageBody': message}
+        self.__queue.send_message(**kwargs)
 
 
 class LogReceiver(Receiver):
