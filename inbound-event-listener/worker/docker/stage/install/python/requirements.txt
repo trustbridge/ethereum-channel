@@ -44,6 +44,7 @@ PyYAML==5.3.1
 requests==2.23.0
 rlp==1.2.0
 s3transfer==0.3.3
+sentry-sdk==0.14.4
 six==1.15.0
 toolz==0.10.0
 urllib3==1.25.9
