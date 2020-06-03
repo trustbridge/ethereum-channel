@@ -30,7 +30,7 @@
         - LogReceiverOne
         - LogReceiverTwo
   Worker:
-    Blockhain:
+    Blockchain:
       URI: ws://ec-iel-ganache-cli:8585
     General:
       PollingInterval: 5

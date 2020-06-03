@@ -1,38 +1,36 @@
 import boto3
+from src import config
 
 
 class Receiver:
     @staticmethod
-    def from_config(config):
-        type = config['Type']
-        if type == 'SQS':
-            return SQSReceiver(config)
-        elif type == 'LOG':
-            return LogReceiver(config)
+    def from_config(config_obj):
+        if isinstance(config_obj, config.SQSReceiver):
+            return SQSReceiver(config_obj)
+        elif isinstance(config_obj, config.LogReceiver):
+            return LogReceiver(config_obj)
 
     @staticmethod
     def mapping_from_list(receiver_list):
         mapping = dict()
-        for config in receiver_list:
-            mapping[config['Id']] = Receiver.from_config(config)
+        for config_obj in receiver_list:
+            mapping[config_obj.Id] = Receiver.from_config(config_obj)
         return mapping
 
 
 class SQSReceiver(Receiver):
-    def __init__(self, config):
-        queue_url = config['QueueUrl']
-        service_config = config.get('Service', {})
-        self.__message_config = config.get('Message', {})
-        self.__queue = boto3.resource('sqs', **service_config).Queue(queue_url)
+    def __init__(self, config_obj):
+        self.config = config_obj
+        self.__queue = boto3.resource('sqs', **config_obj.Service).Queue(config_obj.QueueUrl)
 
     def send(self, message):
-        kwargs = {**self.__message_config, 'MessageBody': message}
+        kwargs = {**self.config.Message, 'MessageBody': message}
         self.queue.send_message(**kwargs)
 
 
 class LogReceiver(Receiver):
-    def __init__(self, config):
-        self.id = config['Id']
+    def __init__(self, config_obj):
+        self.config = config_obj
 
     def send(self, message):
-        print(f'[{self.id}]:{message}')
+        print(f'[{self.config.Id}]:{message}')

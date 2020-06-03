@@ -8,11 +8,9 @@ class Listener:
         return [Listener(web3, contract, receivers, config) for config in config_list]
 
     def __init__(self, web3=None, contract=None, receivers=None, config=None):
-        event = config['Event']
-        receiver_ids = config['Receivers']
-        self.filter = contract.events[event['Name']].createFilter(**event['Filter'])
+        self.filter = contract.events[config.Event.Name].createFilter(**config.Event.Filter)
         self.receivers = []
-        for id in receiver_ids:
+        for id in config.Receivers:
             self.receivers.append(receivers[id])
 
     def poll(self):
