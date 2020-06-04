@@ -1,5 +1,4 @@
 import os
-import shutil
 import json
 from unittest import mock
 import pytest
@@ -15,7 +14,6 @@ def valid_config_filename(request):
 
 
 def test_sqs_receiver(emitEvent, get_sqs_msgs, valid_config_filename):
-    shutil.rmtree('/tmp/worker/listener-blocks-log', ignore_errors=True)
     with mock.patch.dict(os.environ, {'CONFIG_FILE': valid_config_filename}):
         worker = Worker()
     # EventOne must go to the queue-1, but not queue-2
@@ -63,15 +61,10 @@ def test_incorrect_config():
     with pytest.raises(Exception) as einfo:
         load_worker_with_config('/worker/tests/data/invalid-receiver.yml')
     assert str(einfo.value) == "{'Receivers': {0: [\"Can't deserialize the field using any known receiver schema\"]}}"
+
     with pytest.raises(Exception) as einfo:
         load_worker_with_config('/worker/tests/data/missing-listener-receiver.yml')
     assert str(einfo.value) == 'Receiver "MissingReceiver" not found'
     with pytest.raises(Exception) as einfo:
         load_worker_with_config('/worker/tests/data/duplicate-receiver.yml')
     assert str(einfo.value) == "Reciver id duplicates found ['LogReceiver-1']"
-    with pytest.raises(Exception) as einfo:
-        load_worker_with_config('/worker/tests/data/duplicate-listener.yml')
-    assert str(einfo.value) == "Listener id duplicates found ['EventOneListener']"
-    with pytest.raises(Exception) as einfo:
-        load_worker_with_config('/worker/tests/data/wrong-config-extension.conf')
-    assert str(einfo.value) == 'Unsupported config file extension ".conf"'
