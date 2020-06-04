@@ -1,0 +1,21 @@
+---
+  Receivers:
+    -
+      Id: LogReceiver-1
+      Type: LOG
+  Listeners:
+    -
+      Event:
+        Name: EventOne
+        Filter:
+          fromBlock: latest
+      Receivers:
+        - MissingReceiver
+  Worker:
+    Blockchain:
+      URI: ws://ec-iel-ganache-cli:8585
+    General:
+      PollingInterval: 5
+    Contract:
+      ABI:  /contracts/EventEmitter/build/contracts/EventEmitter.json
+      Address: /contracts/EventEmitter/address/EventEmitter.address

@@ -1,11 +1,20 @@
 import os
 import json
 from unittest import mock
+import pytest
 from src.worker import Worker
 
 
-def test(emitEvent, get_sqs_msgs):
-    with mock.patch.dict(os.environ, {'CONFIG_FILE': '/worker/tests/data/config.yml'}):
+@pytest.fixture(scope='function', params=[
+    '/worker/tests/data/config.yml',
+    '/worker/tests/data/config.json'
+])
+def valid_config_filename(request):
+    return request.param
+
+
+def test_sqs_receiver(emitEvent, get_sqs_msgs, valid_config_filename):
+    with mock.patch.dict(os.environ, {'CONFIG_FILE': valid_config_filename}):
         worker = Worker()
     # EventOne must go to the queue-1, but not queue-2
     emitEvent(1, 'EventOne')
@@ -42,3 +51,20 @@ def test(emitEvent, get_sqs_msgs):
     emitEvent(3, 'EventThree')
     assert not get_sqs_msgs(0)
     assert not get_sqs_msgs(1)
+
+
+def test_incorrect_config():
+    def load_worker_with_config(config_file):
+        with mock.patch.dict(os.environ, {'CONFIG_FILE': config_file}):
+            return Worker()
+
+    with pytest.raises(Exception) as einfo:
+        load_worker_with_config('/worker/tests/data/invalid-receiver.yml')
+    assert str(einfo.value) == "{'Receivers': {0: [\"Can't deserialize the field using any known receiver schema\"]}}"
+
+    with pytest.raises(Exception) as einfo:
+        load_worker_with_config('/worker/tests/data/missing-listener-receiver.yml')
+    assert str(einfo.value) == 'Receiver "MissingReceiver" not found'
+    with pytest.raises(Exception) as einfo:
+        load_worker_with_config('/worker/tests/data/duplicate-receiver.yml')
+    assert str(einfo.value) == "Reciver id duplicates found ['LogReceiver-1']"

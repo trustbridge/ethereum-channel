@@ -21,7 +21,7 @@ class Worker:
         for listener in self.listeners:
             listener.poll()
 
-    def run(self):
+    def run(self):  # pragma: no cover
         while True:
             self.poll()
             time.sleep(self.config.Worker.General.PollingInterval)
