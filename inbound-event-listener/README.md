@@ -25,6 +25,5 @@ The configuration contains 3 main sections:
 1. ```make run-fg``` to start the project
 1. ```make shell-worker``` to shell into worker container
 1. ```make run``` inside worker container shell to start worker
-1. ```make shell-truffle``` to shell into truffle container
-1. ```cd contracts/EventEmitter``` and ```truffle console``` to open truffle console
+1. ```make shell-truffle-console``` to open truffle console
 1. ```let emitter = await EventEmitter.deployed()``` inside truffle console, then ```emitter.emitEvent(1, "EventMessage")```. This will emit and event named ```EventOne```. In the worker shell you'll see output signalizing that event was sent to corresponding receiver.

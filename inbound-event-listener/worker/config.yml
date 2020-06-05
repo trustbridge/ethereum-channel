@@ -14,6 +14,14 @@
         AWS:
           region_name: us-east-1
           endpoint_url: http://ec-iel-localstack:10001
+    -
+      Id: SQSReceiver-2
+      Type: SQS
+      QueueUrl: http://ec-iel-localstack:10001/queue/queue-2
+      Config:
+        AWS:
+          region_name: us-east-1
+          endpoint_url: http://ec-iel-localstack:10001
   Listeners:
     -
       Id: EventOneListener
@@ -21,13 +29,14 @@
         Name: EventOne
       Receivers:
         - LogReceiver-1
-        # - SQSReceiver-1
+        - SQSReceiver-1
     -
       Id: EventTwoListener
       Event:
         Name: EventTwo
       Receivers:
         - LogReceiver-2
+        - SQSReceiver-2
     -
       Id: EventThreeListener
       Event:

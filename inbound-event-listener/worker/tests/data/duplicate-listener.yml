@@ -1,8 +1,11 @@
 ---
   Receivers:
     -
-      Id: WrongReceiverType
-      Type: WRONG_RECEIVER_TYPE
+      Id: LogReceiver-1
+      Type: LOG
+    -
+      Id: LogReceiver-2
+      Type: LOG
   Listeners:
     -
       Id: EventOneListener
@@ -11,7 +14,15 @@
         Filter:
           fromBlock: latest
       Receivers:
-        - WrongReceiverType
+        - LogReceiver-1
+    -
+      Id: EventOneListener
+      Event:
+        Name: EventOne
+        Filter:
+          fromBlock: latest
+      Receivers:
+        - LogReceiver-1
   Worker:
     Blockchain:
       URI: ws://ec-iel-ganache-cli:8585
