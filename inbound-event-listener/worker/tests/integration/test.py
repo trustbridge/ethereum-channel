@@ -68,3 +68,6 @@ def test_incorrect_config():
     with pytest.raises(Exception) as einfo:
         load_worker_with_config('/worker/tests/data/duplicate-receiver.yml')
     assert str(einfo.value) == "Reciver id duplicates found ['LogReceiver-1']"
+    with pytest.raises(Exception) as einfo:
+        load_worker_with_config('/worker/tests/data/duplicate-listener.yml')
+    assert str(einfo.value) == "Listener id duplicates found ['EventOneListener']"

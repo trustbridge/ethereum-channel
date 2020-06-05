@@ -32,7 +32,7 @@
         Name: EventOne
       Receivers:
         - LogReceiver-1
-        # - SQSReceiver-1
+        - SQSReceiver-1
     -
       Id: EventTwoListener
       Event:
