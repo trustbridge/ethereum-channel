@@ -29,6 +29,10 @@ class Worker:
         for listener in self.listeners:
             listener.poll()
 
+    def synchronize(self):
+        for listener in self.listeners:
+            listener.synchronize()
+
     def run(self):  # pragma: no cover
         try:
             while True:

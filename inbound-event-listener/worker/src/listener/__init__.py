@@ -47,6 +47,54 @@ class Listener:
         self.__filter = None
         self.__update_filter()
 
+    def __create_filter_configs(self, config, contract, blocks_log_dir):
+        # if last seen block is None start from the first block
+        last_seen_block = self.__load_last_seen_block()
+        default_filter_config = {'fromBlock': last_seen_block}
+        # config.Event.Filter can override last seen block
+        filter_config = {**default_filter_config, **config.Event.Filter}
+        synchronized = filter_config['fromBlock'] == 'latest'
+        # do not synchronize missed events if config specfies 'latest' as the fromBlocks
+        if not synchronized:
+            synchronization_filter_config = copy.deepcopy(filter_config)
+            if synchronization_filter_config['fromBlock'] > 0:
+                # to not catch already received events
+                synchronization_filter_config['fromBlock'] += 1
+        else:
+            synchronization_filter_config = None
+
+        self.last_seen_block = last_seen_block
+        self.filter_config = filter_config
+        self.synchronization_filter_config = synchronization_filter_config
+        self.logger.debug('Filter config %s', filter_config)
+        self.logger.debug('Synchronization filter config %s', synchronization_filter_config)
+
+    def __create_filters(self, config, contract):
+        self.filter = contract.events[config.Event.Name].createFilter(**self.filter_config)
+        if self.synchronization_filter_config:
+            self.synchronization_filter = contract.events[config.Event.Name].createFilter(
+                **self.synchronization_filter_config
+            )
+            self.logger.debug('Synchronization filter created')
+        else:
+            self.logger.debug('Synchronization filter creation not required')
+            self.synchronization_filter = None
+
+    def __init__(self, web3=None, contract=None, receivers=None, config=None, blocks_log_dir=None):
+        self.logger = logging.getLogger(config.Id)
+        self.last_seen_block_file = os.path.join(blocks_log_dir, config.Id)
+        self.__create_receivers(config, receivers)
+        self.__create_filter_configs(config, contract, blocks_log_dir)
+        self.__create_filters(config, contract)
+
+    def synchronize(self):
+        if not self.synchronization_filter:
+            self.logger.debug('Synchronization not required')
+            return
+        self.logger.debug('Starting synchronization of missed events[blockNumber=%s]...', self.last_seen_block)
+        self.__send_events_to_receivers(self.synchronization_filter.get_all_entries())
+        self.logger.debug('Synchronization completed[blockNumber=%s]', self.last_seen_block)
+
     def poll(self):
 
         new_from_block = self.__from_block
