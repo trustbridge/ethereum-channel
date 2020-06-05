@@ -27,10 +27,10 @@ class SQSReceiver(Receiver):
 
     def send(self, message):
         kwargs = {**self.config.Config.Message, 'MessageBody': message}
-        self.__logger.info('Sending the message to %s', self.config.QueueUrl)
-        self.__logger.info(message)
+        self.__logger.debug('Sending the message to %s', self.config.QueueUrl)
+        self.__logger.debug(message)
         self.__queue.send_message(**kwargs)
-        self.__logger.info('Message sent')
+        self.__logger.debug('Message sent')
 
 
 class LogReceiver(Receiver):

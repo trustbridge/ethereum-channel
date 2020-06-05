@@ -40,6 +40,12 @@ shell-truffle:
 	@ docker-compose exec truffle /bin/bash
 
 
+.PHONY: shell-truffle-console
+.ONESHELL:
+shell-truffle-console:
+	@ docker-compose exec truffle /bin/bash -c "cd /truffle/contracts/EventEmitter && truffle console"
+
+
 .PHONY: shell-ganache-cli
 .ONESHELL:
 shell-ganache-cli:

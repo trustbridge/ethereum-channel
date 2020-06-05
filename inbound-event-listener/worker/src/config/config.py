@@ -19,6 +19,8 @@ class Worker:
     class __General:
         def __init__(self, config_dict):
             self.PollingInterval = config_dict['PollingInterval']
+            self.ListenerBlocksLogDir = config_dict['ListenerBlocksLogDir']
+            self.LoggerName = config_dict['LoggerName']
 
     def __init__(self, config_dict):
         self.Blockchain = self.__Blockchain(config_dict['Blockchain'])
@@ -34,6 +36,7 @@ class Listener:
             self.Filter = config_dict['Filter']
 
     def __init__(self, config_dict):
+        self.Id = config_dict['Id']
         self.Event = self.__Event(config_dict['Event'])
         self.Receivers = config_dict['Receivers']
 
@@ -90,8 +93,11 @@ class Config:
 
     def __validate(self):
         receiver_ids = [r.Id for r in self.Receivers]
+        listener_ids = [l.Id for l in self.Listeners]
         if receiver_id_duplicates := [k for k, v in Counter(receiver_ids).items() if v > 1]:
             raise ValueError(f'Reciver id duplicates found {receiver_id_duplicates}')
+        if listener_id_duplicates := [k for k, v in Counter(listener_ids).items() if v > 1]:
+            raise ValueError(f'Listener id duplicates found {listener_id_duplicates}')
         for listener in self.Listeners:
             for id in listener.Receivers:
                 if id not in receiver_ids:

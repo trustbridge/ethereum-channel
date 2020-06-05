@@ -43,7 +43,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'level': 'INFO',
+            'level': 'DEBUG' if os.environ.get('DEBUG', '').lower() in ['true', '1'] else 'INFO',
             'handlers': ['console'],
         }
     }

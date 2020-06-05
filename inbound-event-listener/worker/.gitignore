@@ -5,3 +5,4 @@
 **/htmlcov
 **/dist
 test-report.xml
+listener-blocks-log

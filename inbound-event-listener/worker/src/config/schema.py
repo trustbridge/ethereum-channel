@@ -20,6 +20,8 @@ class Worker(Schema):
 
     class __General(Schema):
         PollingInterval = fields.Integer(validate=validate.Range(min=1), missing=5)
+        ListenerBlocksLogDir = fields.String(required=True, validate=validate.Length(min=1))
+        LoggerName = fields.String(validate=validate.Length(min=1), missing="Inbound Event Listener")
 
     class __Contract(Schema):
         ABI = fields.String(required=True, validate=validate.Length(min=1))
@@ -33,7 +35,8 @@ class Worker(Schema):
 class Listener(Schema):
     class __Event(Schema):
         Name = fields.String()
-        Filter = fields.Dict(missing=dict(fromBlock='lastest'))
+        Filter = fields.Dict(missing=dict())
+    Id = fields.String(required=True, validate=validate.Length(min=1))
     Event = fields.Nested(__Event)
     Receivers = fields.List(fields.String(), validate=validate.Length(min=1))
 

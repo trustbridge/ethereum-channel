@@ -3,6 +3,11 @@
 run:
 	python -m src.worker
 
+.PHONY: run-debug
+.ONESHELL:
+run-debug:
+	DEBUG=True python -m src.worker
+
 
 .PHONY: test
 .ONESHELL:
