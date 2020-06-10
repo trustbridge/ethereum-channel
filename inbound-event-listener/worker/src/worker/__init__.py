@@ -18,11 +18,10 @@ class Worker:
         contract = Contract(web3, config.Worker.Contract.Address, config.Worker.Contract.ABI)
         receivers = Receiver.mapping_from_list(config.Receivers)
         self.listeners = Listener.from_config_list(
-            web3,
             contract,
             receivers,
             config.Listeners,
-            config.Worker.General.ListenerBlocksLogDir
+            config
         )
         self.logger = logging.getLogger(config.Worker.General.LoggerName)
 
@@ -30,13 +29,8 @@ class Worker:
         for listener in self.listeners:
             listener.poll()
 
-    def synchronize(self):
-        for listener in self.listeners:
-            listener.synchronize()
-
     def run(self):  # pragma: no cover
         try:
-            self.synchronize()
             while True:
                 self.poll()
                 time.sleep(self.config.Worker.General.PollingInterval)

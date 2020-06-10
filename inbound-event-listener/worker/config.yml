@@ -7,6 +7,9 @@
       Id: LogReceiver-2
       Type: LOG
     -
+      Id: LogReceiver-3
+      Type: LOG
+    -
       Id: SQSReceiver-1
       Type: SQS
       QueueUrl: http://ec-iel-localstack:10001/queue/queue-1
@@ -41,11 +44,10 @@
       Id: EventThreeListener
       Event:
         Name: EventThree
-        Filter:
-          fromBlock: latest
+        # Filter:
+        #   fromBlock: latest # disable synchronisation using last seen block file
       Receivers:
-        - LogReceiver-1
-        - LogReceiver-2
+        - LogReceiver-3
   Worker:
     Blockchain:
       URI: ws://ec-iel-ganache-cli:8585

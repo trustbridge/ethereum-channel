@@ -71,3 +71,7 @@ def test_incorrect_config():
     with pytest.raises(Exception) as einfo:
         load_worker_with_config('/worker/tests/data/duplicate-listener.yml')
     assert str(einfo.value) == "Listener id duplicates found ['EventOneListener']"
+
+    with pytest.raises(Exception) as einfo:
+        load_worker_with_config('/worker/tests/data/wrong-config-extension.conf')
+    assert str(einfo.value) == 'Unsupported config file extension ".conf"'

@@ -4,15 +4,17 @@ run-fg:
 	@ docker-compose up --build --remove-orphans
 
 
-.PHONY: clean-blockhain
-clean-blockhain:
+.PHONY: clean-blockchain
+clean-blockchain:
+	@ rm -rf worker/listener-blocks-log
+	@ mkdir worker/listener-blocks-log
 	@ rm -rf ganache-cli/database
 	@ mkdir ganache-cli/database
 
 
 .PHONY: clean
 .ONESHELL:
-clean: clean-blockhain
+clean: clean-blockchain
 	@ docker-compose down --rmi all --volumes
 
 
