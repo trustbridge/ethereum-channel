@@ -19,6 +19,7 @@ pipeline {
     }
 
     environment {
+        // Set poetry path location
         PATH = "$PATH:$HOME/.poetry/bin"
     }
 
@@ -74,6 +75,17 @@ pipeline {
     }
 
     post {
+
+        success {
+            script {
+                if ( env.BRANCH_NAME == 'master' ) {
+                    build job: '../cotp-devnet/build-etherium-channel/master', parameters: [
+                        string(name: 'branchref_etherium-channel', value: "${GIT_COMMIT}")
+                    ]
+                }
+            }
+        }
+
         cleanup {
             cleanWs()
         }
