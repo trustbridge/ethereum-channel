@@ -18,13 +18,17 @@ pipeline {
         parallelsAlwaysFailFast()
     }
 
+    environment {
+        PATH = "$PATH:$HOME/.poetry/bin"
+    }
+
     stages {
 
         stage('Setup') {
             steps {
                 sh '''#!/bin/bash
                     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-                    source $HOME/.poetry/env
+                    export PATH="$HOME/.poetry/bin:$PATH"
                     poetry --version
                 '''
             }
@@ -52,6 +56,7 @@ pipeline {
                 dir('channel-api/') {
                     sh '''#!/bin/bash
                     npm ci
+                    export PATH="$(npm bin):$PATH"
 
                     sls package --package dist/
                     '''
