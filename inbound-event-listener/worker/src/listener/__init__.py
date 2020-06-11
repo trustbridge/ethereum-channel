@@ -57,9 +57,9 @@ class Listener:
             self.__logger.debug('event.blockNumber=%s', event.blockNumber)
             # update filter if initial "fromBlock" = "latest"
             event_received = True
-            # DUPLICATES AVOIDANCE: ignore event if block already seen
+            # DUPLICATES AVOIDANCE
             if event.blockNumber < new_from_block:
-                self.__logger.debug('event already seen, ignoring')
+                self.__logger.debug('event was already seen, ignored.')
                 continue
             # start new filter from the next block
             new_from_block = event.blockNumber + 1

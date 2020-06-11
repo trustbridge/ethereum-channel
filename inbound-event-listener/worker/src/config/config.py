@@ -86,7 +86,7 @@ class Config:
                 self.Receivers.append(LogReceiver(receiver_config))
             elif type == 'SQS':
                 self.Receivers.append(SQSReceiver(receiver_config))
-            else:
+            else:  # pragma: no cover (extra protection)
                 raise ValueError(f'Unknown Receiver type "{type}"')
         self.Listeners = [Listener(listener_config) for listener_config in config_dict['Listeners']]
         self.__validate()
