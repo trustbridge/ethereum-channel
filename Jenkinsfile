@@ -16,6 +16,7 @@ pipeline {
         disableConcurrentBuilds()
         durabilityHint('PERFORMANCE_OPTIMIZED')
         parallelsAlwaysFailFast()
+        quietPeriod 60
     }
 
     environment {
