@@ -15,7 +15,7 @@ def valid_config_filename(request):
 
 
 def test_sqs_receiver(emitEvent, get_sqs_msgs, valid_config_filename):
-    shutil.rmtree('/tmp/worker/listener-blocks-log')
+    shutil.rmtree('/tmp/worker/listener-blocks-log', ignore_errors=True)
     with mock.patch.dict(os.environ, {'CONFIG_FILE': valid_config_filename}):
         worker = Worker()
     # EventOne must go to the queue-1, but not queue-2
