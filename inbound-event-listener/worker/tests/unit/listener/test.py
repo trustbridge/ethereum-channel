@@ -43,28 +43,38 @@ def test_duplicates_avoidance(Web3):
         f.write(str(FROM_BLOCK))
 
     listener = Listener(contract, receivers, config, global_config)
-
+    # no events in the filter
     event.createFilter.assert_called()
+
     listener.poll()
+
     event_filter.get_all_entries.assert_called()
     receiver.send.assert_not_called()
 
     event.reset_mock()
     event_filter.reset_mock()
     receiver.reset_mock()
-
+    # event must be blocked by he duplicates avoidance mechanism
     e = mock.MagicMock()
     e.blockNumber = FROM_BLOCK - 1
     event_filter.get_all_entries.return_value = [e]
+
     listener.poll()
+
     event_filter.get_all_entries.assert_called()
     receiver.send.assert_not_called()
 
     event.reset_mock()
     event_filter.reset_mock()
     receiver.reset_mock()
-
+    # event must pass normally because it is >= last seen block(fromblock)
     e.blockNumber = FROM_BLOCK
+
     listener.poll()
+
     event_filter.get_all_entries.assert_called()
     receiver.send.assert_called()
+
+    event.reset_mock()
+    event_filter.reset_mock()
+    receiver.reset_mock()
