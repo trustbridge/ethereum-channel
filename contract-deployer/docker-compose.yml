@@ -11,7 +11,7 @@ services:
     container_name: ec-cd-localstack
     environment:
       EDGE_PORT: 10001
-      HOSTNAME_EXTERNAL: ec-iel-localstack
+      HOSTNAME_EXTERNAL: ec-cd-localstack
       SERVICES: 's3'
       DEFAULT_REGION: us-east-1
       LAMBDA_REMOTE_DOCKER: 0
@@ -49,10 +49,17 @@ services:
       - '${dockerstagedir:-.}/deployer:/deployer'
       - '${dockerstagedir:-.}/contract:/deployer/contract'
     environment:
+
+      CONTRACT_BUILDS_DIR: /deployer/contract/build/contracts
       CONTRACT_ARTIFACT_NAME: MetaCoin
       CONTRACT_BUCKET_NAME: contract
+      CONTRACT_DATA_BUCKET_KEY: contract-data
+
       AWS_DEFAULT_REGION: us-east-1
       AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secret
+      AWS_SECRET_ACCESS_KEY: secretaccess
+
+      AWS_ENDPOINT_URL: http://ec-cd-localstack:10001
+
     networks:
       - internal

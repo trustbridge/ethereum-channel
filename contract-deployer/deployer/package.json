@@ -6,7 +6,7 @@
   "scripts": {
     "build": "cd contract && truffle build",
     "deploy": "cd contract && truffle deploy",
-    "save-contract-address-s3": "cd contract && truffle exec ../scripts/save-contract-address-s3.js",
+    "save-contract-data-s3": "cd contract && truffle exec ../scripts/save-contract-address-abi-s3.js",
     "test": "mocha"
   },
   "author": "",
@@ -16,8 +16,9 @@
     "mocha": "^8.0.1"
   },
   "dependencies": {
-    "truffle": "^5.1.31",
     "aws-sdk": "^2.701.0",
-    "pine": "^1.1.1"
+    "md5": "^2.2.1",
+    "pine": "^1.1.1",
+    "truffle": "^5.1.31"
   }
 }
