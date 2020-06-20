@@ -6,19 +6,21 @@
   "scripts": {
     "build": "cd contract && truffle build",
     "deploy": "cd contract && truffle deploy",
-    "save-contract-data-s3": "cd contract && truffle exec ../scripts/save-contract-address-abi-s3.js",
+    "save-contract-data-s3": "cd contract && truffle exec ../scripts/save-contract-data-s3.js | pino-pretty",
     "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.0.1"
+    "mocha": "^8.0.1",
+    "pino-pretty": "^4.0.0"
   },
   "dependencies": {
     "aws-sdk": "^2.701.0",
     "md5": "^2.2.1",
     "pine": "^1.1.1",
+    "pino": "^6.3.2",
     "truffle": "^5.1.31"
   }
 }
