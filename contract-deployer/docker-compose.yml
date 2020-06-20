@@ -1,0 +1,58 @@
+version: '3.5'
+
+networks:
+  internal:
+    name: ec-cd-internal
+
+services:
+
+  localstack:
+    image: localstack/localstack
+    container_name: ec-cd-localstack
+    environment:
+      EDGE_PORT: 10001
+      HOSTNAME_EXTERNAL: ec-iel-localstack
+      SERVICES: 's3'
+      DEFAULT_REGION: us-east-1
+      LAMBDA_REMOTE_DOCKER: 0
+      AWS_ACCESS_KEY_ID: access
+      AWS_SECRET_ACCESS_KEY: secretaccess
+    restart: on-failure
+    networks:
+      - internal
+    volumes:
+      - '${dockerstagedir:-.}/localstack:/docker-entrypoint-initaws.d'
+
+  ganache-cli:
+    image: trufflesuite/ganache-cli
+    container_name: ec-cd-ganache-cli
+    networks:
+      - internal
+    command: >
+        ganache-cli
+        --hostname 0.0.0.0
+        --port 8585
+        --networkId 15
+        --blockTime 0
+        --accounts 5
+        --deterministic
+        --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
+
+  deployer:
+    image: ethereum-channel/contract-deployer/deployer
+    container_name: ec-cd-deployer
+    build:
+      context: ${dockerstagedir:-.}/deployer
+      dockerfile: docker/Dockerfile
+    volumes:
+      - '/deployer/node_modules'
+      - '${dockerstagedir:-.}/deployer:/deployer'
+      - '${dockerstagedir:-.}/contract:/deployer/contract'
+    environment:
+      CONTRACT_ARTIFACT_NAME: MetaCoin
+      CONTRACT_BUCKET_NAME: contract
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: access
+      AWS_SECRET_ACCESS_KEY: secret
+    networks:
+      - internal
