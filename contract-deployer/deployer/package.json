@@ -6,7 +6,8 @@
   "scripts": {
     "build": "cd contract && truffle build",
     "deploy": "cd contract && truffle deploy",
-    "save-contract-data-s3": "cd contract && truffle exec ../scripts/save-contract-data-s3.js | pino-pretty",
+    "load-build-artifacts": "cd contract && truffle exec ../scripts/load-build-artifacts.js | pino-pretty",
+    "save-build-artifacts": "cd contract && truffle exec ../scripts/save-build-artifacts.js | pino-pretty",
     "test": "mocha"
   },
   "author": "",
@@ -17,9 +18,9 @@
     "pino-pretty": "^4.0.0"
   },
   "dependencies": {
+    "@truffle/hdwallet-provider": "^1.0.35",
     "aws-sdk": "^2.701.0",
     "md5": "^2.2.1",
-    "pine": "^1.1.1",
     "pino": "^6.3.2",
     "truffle": "^5.1.31"
   }

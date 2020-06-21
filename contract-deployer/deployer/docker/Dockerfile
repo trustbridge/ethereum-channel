@@ -3,7 +3,7 @@ FROM node:alpine
 WORKDIR /deployer
 
 RUN apk update && \
-  apk add --no-cache git bash make gcc g++ && \
+  apk add --no-cache git bash make gcc g++ python3 && \
   mkdir contract && \
   chown -R node /deployer
 

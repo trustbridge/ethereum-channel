@@ -34,6 +34,7 @@ services:
         --port 8585
         --networkId 15
         --blockTime 0
+        --secure
         --accounts 5
         --deterministic
         --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
@@ -51,9 +52,7 @@ services:
     environment:
 
       CONTRACT_BUILDS_DIR: /deployer/contract/build/contracts
-      CONTRACT_ARTIFACT_NAME: MetaCoin
       CONTRACT_BUCKET_NAME: contract
-      CONTRACT_DATA_BUCKET_KEY: contract-data
 
       AWS_DEFAULT_REGION: us-east-1
       AWS_ACCESS_KEY_ID: access
