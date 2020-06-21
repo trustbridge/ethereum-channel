@@ -1,5 +1,7 @@
+// this config will not work in the current setup. Deployment script must replace it.
+
 module.exports = {
-  "networks": {
+  networks: {
     development: {
       host: "ec-cd-ganache-cli",
       port: 8585,             // Custom port
@@ -8,4 +10,4 @@ module.exports = {
       websockets: true        // Enable EventEmitter interface for web3 (default: false)
     }
   }
-};
+}

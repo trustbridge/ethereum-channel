@@ -4,10 +4,6 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "build": "cd contract && truffle build",
-    "deploy": "cd contract && truffle deploy",
-    "load-build-artifacts": "cd contract && truffle exec ../scripts/load-build-artifacts.js | pino-pretty",
-    "save-build-artifacts": "cd contract && truffle exec ../scripts/save-build-artifacts.js | pino-pretty",
     "test": "mocha"
   },
   "author": "",

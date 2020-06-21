@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
-echo "Container started, waiting forever..."
+sleep $SLEEP
 
-tail -f /dev/null
+set -euo pipefail
+
+case "${CONTAINER_MODE,,}" in
+  task)
+    cd /deployer
+    bash scripts/deploy.sh
+    ;;
+  container)
+    echo "Container started"
+    tail -f /dev/null
+    ;;
+  *)
+    echo "No mode specified" && exit 1
+esac
