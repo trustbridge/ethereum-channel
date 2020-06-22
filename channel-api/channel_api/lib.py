@@ -27,13 +27,13 @@ def get_abi():
 
 def get_client() -> EthereumClient:
     w3 = Web3(Web3.HTTPProvider(
-        os.environ['PROVIDER_URL']))
+        os.environ['RPC_URL']))
     return w3.eth
 
 
 def get_w3() -> EthereumClient:
     w3 = Web3(Web3.HTTPProvider(
-        os.environ['PROVIDER_URL']))
+        os.environ['RPC_URL']))
     return w3
 
 
