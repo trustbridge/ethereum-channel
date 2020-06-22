@@ -81,7 +81,7 @@ pipeline {
             script {
                 if ( env.BRANCH_NAME == 'master' ) {
                     build job: '../cotp-devnet/build-ethereum-channel/master', parameters: [
-                        string(name: 'branchref_ethereum-channel', value: "${GIT_COMMIT}")
+                        string(name: 'branchref_ethereum_channel', value: "${GIT_COMMIT}")
                     ]
                 }
             }
