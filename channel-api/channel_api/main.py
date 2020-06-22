@@ -15,9 +15,6 @@ from .models import (
     TransactionReceipt)
 from fastapi import Depends, FastAPI, Response
 import json
-import os
-import boto3
-sqs = boto3.client('sqs')
 
 
 app = FastAPI()
