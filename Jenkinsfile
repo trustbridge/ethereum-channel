@@ -24,6 +24,7 @@ pipeline {
         PATH = "$PATH:$HOME/.poetry/bin"
         DOCKER_BUILD_DIR = "${env.DOCKER_STAGE_DIR}/${BUILD_TAG}"
         COMPOSE_INTERACTIVE_NO_CLI = "1"
+        COMPOSE_PROJECT_NAME = 'ethchn'
     }
 
     stages {
