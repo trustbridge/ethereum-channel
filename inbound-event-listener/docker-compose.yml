@@ -59,7 +59,8 @@ services:
     container_name: ec-iel-worker
     build:
       context: ${dockerstagedir:-.}/worker
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
+    command: tail -f /dev/null
     volumes:
       - '${dockerstagedir:-.}/worker:/worker'
       - '${dockerstagedir:-.}/contracts:/contracts'
