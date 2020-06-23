@@ -81,7 +81,6 @@ async def create_message(message: MessageRequest,
     contract = client.contract(config.contract_address, abi=contract_abi)
 
     msg = {
-        "sender_ref": "1234567890",
         "subject": message.subject,
         "predicate": message.predicate,
         "object": message.obj,
