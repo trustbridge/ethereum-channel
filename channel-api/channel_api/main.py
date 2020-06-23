@@ -88,18 +88,20 @@ async def create_message(message: MessageRequest,
         "sender": message.sender,
         "receiver": message.receiver
     }
+    account = client.accounts.privateKeyToAccount(config.key)
+    nonce = client.getTransactionCount(account.address)
 
     # tx_hash = contract.functions.send(msg).transact()
     txn = contract.functions.send(msg).buildTransaction({
         'gas': 70000,
         'gasPrice': w3.toWei('1', 'gwei'),
-        'nonce': client.getTransactionCount('0xd2c8Dc659A7134973914A96919F5B61633F15Dd9')
+        'nonce': nonce  # client.getTransactionCount(account.address)
     })
     signed_txn = client.account.sign_transaction(
         txn, private_key=config.key)
     tx_hash = client.sendRawTransaction(signed_txn.rawTransaction)
     # sqs.send_message(
-    #     QueueUrl=os.environ['QUEUE_URL'], MessageBody=tx_hash.hex())
+    #     QueueUrl=os.environ['OUTBOUND_MESSAGE_QUEUE_URL'], MessageBody=tx_hash.hex())
 
     message_payload = MessageRequest(
         subject=message.subject,
