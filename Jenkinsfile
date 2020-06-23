@@ -116,7 +116,7 @@ pipeline {
                 cleanup {
                     dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/inbound-event-listener") {
                         sh '''#!/bin/bash
-                            docker-compose down --rmi all --volumes
+                            docker-compose -f docker-compose.yml down --rmi local -v --remove-orphans
                         '''
                     }
                 }
