@@ -115,7 +115,9 @@ pipeline {
 
                 cleanup {
                     dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/inbound-event-listener") {
-                        make clean
+                        sh '''#!/bin/bash
+                            docker-compose down --rmi all --volumes
+                        '''
                     }
                 }
             }
