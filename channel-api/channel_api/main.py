@@ -88,6 +88,7 @@ async def create_message(message: MessageRequest,
         "sender": message.sender,
         "receiver": message.receiver
     }
+
     account = client.account.privateKeyToAccount(config.key)
     nonce = client.getTransactionCount(account.address)
 
