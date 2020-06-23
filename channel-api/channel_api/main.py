@@ -1,8 +1,10 @@
-from fastapi import Depends, FastAPI, Response
-import json
-
-import os
-
+from .lib import (
+    get_abi,
+    get_client,
+    get_config,
+    get_contract,
+    get_w3
+)
 from .models import (
     Config,
     EthereumClient,
@@ -11,13 +13,9 @@ from .models import (
     MessageStatus,
     Transaction,
     TransactionReceipt)
-from .lib import (
-    get_abi,
-    get_client,
-    get_config,
-    get_contract,
-    get_w3
-)
+from fastapi import Depends, FastAPI, Response
+import json
+
 
 app = FastAPI()
 

@@ -17,14 +17,6 @@ sqs = boto3.client('sqs')
 # TODO: should be getting this from S3
 
 
-def get_abi():
-    with open('ChannelNode.json') as f:
-        compiled_contract = json.load(f)
-
-    ABI = compiled_contract['abi']
-    return ABI
-
-
 def get_client() -> EthereumClient:
     w3 = Web3(Web3.HTTPProvider(
         os.environ['RPC_URL']))
@@ -63,17 +55,6 @@ def get_transaction_receipt(id: str):
     return TransactionReceipt(**transaction_receipt)
 
 
-def get_contract():
-    with open('ChannelNode.json') as f:
-        compiled_contract = json.load(f)
-
-    ABI = compiled_contract['abi']
-
-    contract = w3.eth.contract(contract_address, abi=ABI)
-
-    return contract
-
-
 def transaction_status(
         txn_receipt: TransactionReceipt,
         current_block: int,
@@ -89,4 +70,19 @@ def transaction_status(
             status = MessageStatus.RECEIVED
 
 
+# TODO: once abi being stored in s3 then this needs to be
+# changed to pull from there instead
+def get_abi():
+    contract_string = "  \"abi\": [\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"string[]\",\n          \"name\": \"_participantList\",\n          \"type\": \"string[]\"\n        }\n      ],\n      \"stateMutability\": \"nonpayable\",\n      \"type\": \"constructor\"\n    },\n    {\n      \"anonymous\": false,\n      \"inputs\": [\n        {\n          \"components\": [\n            {\n              \"internalType\": \"string\",\n              \"name\": \"subject\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"predicate\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"object\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"sender\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"receiver\",\n              \"type\": \"string\"\n            }\n          ],\n          \"indexed\": false,\n          \"internalType\": \"struct ChannelNode.Message\",\n          \"name\": \"message\",\n          \"type\": \"tuple\"\n        }\n      ],\n      \"name\": \"MessageReceivedEvent\",\n      \"type\": \"event\"\n    },\n    {\n      \"anonymous\": false,\n      \"inputs\": [\n        {\n          \"indexed\": false,\n          \"internalType\": \"string\",\n          \"name\": \"subject\",\n          \"type\": \"string\"\n        }\n      ],\n      \"name\": \"MessageSentEvent\",\n      \"type\": \"event\"\n    },\n    {\n      \"inputs\": [],\n      \"name\": \"owner\",\n      \"outputs\": [\n        {\n          \"internalType\": \"address\",\n          \"name\": \"\",\n          \"type\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\",\n      \"type\": \"function\",\n      \"constant\": true\n    },\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"uint256\",\n          \"name\": \"\",\n          \"type\": \"uint256\"\n        }\n      ],\n      \"name\": \"participantList\",\n      \"outputs\": [\n        {\n          \"internalType\": \"string\",\n          \"name\": \"\",\n          \"type\": \"string\"\n        }\n      ],\n      \"stateMutability\": \"view\",\n      \"type\": \"function\",\n      \"constant\": true\n    },\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"string\",\n          \"name\": \"\",\n          \"type\": \"string\"\n        }\n      ],\n      \"name\": \"participants\",\n      \"outputs\": [\n        {\n          \"internalType\": \"address\",\n          \"name\": \"participantAddress\",\n          \"type\": \"address\"\n        },\n        {\n          \"internalType\": \"contract ChannelNode\",\n          \"name\": \"participantContract\",\n          \"type\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\",\n      \"type\": \"function\",\n      \"constant\": true\n    },\n    {\n      \"inputs\": [],\n      \"name\": \"getParticipants\",\n      \"outputs\": [\n        {\n          \"internalType\": \"string[]\",\n          \"name\": \"\",\n          \"type\": \"string[]\"\n        }\n      ],\n      \"stateMutability\": \"view\",\n      \"type\": \"function\",\n      \"constant\": true\n    },\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"string\",\n          \"name\": \"participant\",\n          \"type\": \"string\"\n        }\n      ],\n      \"name\": \"getParticipant\",\n      \"outputs\": [\n        {\n          \"components\": [\n            {\n              \"internalType\": \"address\",\n              \"name\": \"participantAddress\",\n              \"type\": \"address\"\n            },\n            {\n              \"internalType\": \"contract ChannelNode\",\n              \"name\": \"participantContract\",\n              \"type\": \"address\"\n            }\n          ],\n          \"internalType\": \"struct ChannelNode.Participant\",\n          \"name\": \"\",\n          \"type\": \"tuple\"\n        }\n      ],\n      \"stateMutability\": \"view\",\n      \"type\": \"function\",\n      \"constant\": true\n    },\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"string\",\n          \"name\": \"_name\",\n          \"type\": \"string\"\n        },\n        {\n          \"internalType\": \"address\",\n          \"name\": \"_address\",\n          \"type\": \"address\"\n        }\n      ],\n      \"name\": \"addParticipant\",\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\",\n      \"type\": \"function\"\n    },\n    {\n      \"inputs\": [\n        {\n          \"internalType\": \"string\",\n          \"name\": \"_name\",\n          \"type\": \"string\"\n        },\n        {\n          \"internalType\": \"address\",\n          \"name\": \"_address\",\n          \"type\": \"address\"\n        }\n      ],\n      \"name\": \"updateParticipantContractAddress\",\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\",\n      \"type\": \"function\"\n    },\n    {\n      \"inputs\": [\n        {\n          \"components\": [\n            {\n              \"internalType\": \"string\",\n              \"name\": \"subject\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"predicate\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"object\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"sender\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"receiver\",\n              \"type\": \"string\"\n            }\n          ],\n          \"internalType\": \"struct ChannelNode.Message\",\n          \"name\": \"message\",\n          \"type\": \"tuple\"\n        }\n      ],\n      \"name\": \"receiveMessage\",\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\",\n      \"type\": \"function\"\n    },\n    {\n      \"inputs\": [\n        {\n          \"components\": [\n            {\n              \"internalType\": \"string\",\n              \"name\": \"subject\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"predicate\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"object\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"sender\",\n              \"type\": \"string\"\n            },\n            {\n              \"internalType\": \"string\",\n              \"name\": \"receiver\",\n              \"type\": \"string\"\n            }\n          ],\n          \"internalType\": \"struct ChannelNode.Message\",\n          \"name\": \"message\",\n          \"type\": \"tuple\"\n        }\n      ],\n      \"name\": \"send\",\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\",\n      \"type\": \"function\"\n    }\n  ]"
+    compiled_contract = json.loads(contract_string)
+    return compiled_contract['abi']
 # def transaction_to_message_response(txn: Transaction, txn_receipt: TransactionReceipt) -> MessageResponse:
+
+
+def get_contract():
+    w3 = get_w3()
+    ABI = get_abi()
+
+    contract = w3.eth.contract(contract_address, abi=ABI)
+
+    return contract
