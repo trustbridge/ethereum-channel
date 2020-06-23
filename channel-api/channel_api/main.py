@@ -88,7 +88,7 @@ async def create_message(message: MessageRequest,
         "sender": message.sender,
         "receiver": message.receiver
     }
-    account = client.accounts.privateKeyToAccount(config.key)
+    account = client.account.privateKeyToAccount(config.key)
     nonce = client.getTransactionCount(account.address)
 
     # tx_hash = contract.functions.send(msg).transact()
