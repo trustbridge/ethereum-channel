@@ -22,6 +22,7 @@ pipeline {
     environment {
         // Set poetry path location
         PATH = "$PATH:$HOME/.poetry/bin"
+        DOCKER_BUILD_DIR = "${env.DOCKER_STAGE_DIR}/${BUILD_TAG}"
     }
 
     stages {
@@ -69,6 +70,49 @@ pipeline {
                 success {
                     dir('channel-api/') {
                         archiveArtifacts artifacts: 'dist/channel-api.zip', fingerprint: true
+                    }
+                }
+            }
+        }
+
+        stage('Inbound Event listener') {
+
+            steps {
+                // Checkout into
+                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/") {
+                    checkout scm
+                }
+
+                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/inbound-event-listener") {
+                    docker-compose up -d --build --remove-orphans
+                    docker-compose exec worker flake8 --config=.flake8 src tests
+                    docker-compose exec worker pytest --junitxml="/worker/test-report.xml"
+                    docker-compose exec worker make coverage
+                }
+
+            }
+
+            post {
+                always {
+                    dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/inbound-event-listener") {
+                        junit 'worker/test-report.xml'
+                        publishHTML(
+                            [
+                                allowMissing: true,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'worker/htmlcov',
+                                reportFiles: 'index.html',
+                                reportName: 'Inbound Event Worker Coverage Report',
+                                reportTitles: ''
+                            ]
+                        )
+                    }
+                }
+
+                cleanup {
+                    dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/inbound-event-listener") {
+                        make clean
                     }
                 }
             }
