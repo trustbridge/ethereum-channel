@@ -14,7 +14,7 @@ run: clean-contract-build
 .ONESHELL:
 clean-contract-build:
 	@ rm -rf contract/build
-	@ rm -rf deployer/contract-deployment/build
+	@ rm -rf deployer/contract-deployment
 
 .PHONY: clean
 .ONESHELL:

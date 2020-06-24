@@ -7,19 +7,18 @@ const constants = require('./constants');
 
 
 async function main(){
+  logger.info('Started: save-build-artifacts...');
   utils.requireEnv([
     'CONTRACT_BUCKET_NAME'
   ]);
-  logger.info('Reading contracts build artifacts in %s', constants.CONTRACT_BUILD_DIR);
-  const buildArtifactFiles = await fs.readdir(constants.CONTRACT_BUILD_DIR);
-  logger.info('Contracts build artifacts are:[%s]', buildArtifactFiles);
-  const S3 = new AWS.S3();
-  for(const basename of buildArtifactFiles){
-    const filename = path.join(constants.CONTRACT_BUILD_DIR, basename);
-    const prefix = process.env.CONTRACT_KEY_PREFIX || '';
-    const key = path.join(prefix, basename);
-    await utils.S3.saveFile(S3, filename, process.env.CONTRACT_BUCKET_NAME, key);
-  }
+  await utils.archive.zip(constants.CONTRACT_BUILD_DIR, constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
+  const S3 = new AWS.S3()
+  const prefix = process.env.CONTRACT_KEY_PREFIX || '';
+  const key = path.join(prefix, constants.CONTRACT_ARTIFACTS_KEY);
+  await utils.S3.saveFile(S3, constants.CONTRACT_ARTIFACTS_ZIP_FILENAME, process.env.CONTRACT_BUCKET_NAME, key);
+  logger.info('Deleting local build artifacts archive...');
+  await fs.unlink(constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
+  logger.info('Deleted');
   logger.info('Done');
 }
 
@@ -29,6 +28,6 @@ module.exports = async function(done){
     done();
   }catch(e){
     logger.error(e);
-    done();
+    process.exit(1);
   }
 }

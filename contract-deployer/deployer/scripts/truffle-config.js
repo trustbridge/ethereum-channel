@@ -17,6 +17,12 @@ const BLOCKCHAIN_ENDPOINT = getEnv('TRUFFLE_BLOCKCHAIN_ENDPOINT', null);
 
 module.exports = {
   networks: {
+    develop: {
+      port: 8545,
+      network_id: 15,
+      accounts: 1,
+      defaultEtherBalance: 500
+    },
     production:{
       network_id: NETWORK_ID,
       provider: ()=> new HDWalletProvider([WALLET_PK], BLOCKCHAIN_ENDPOINT, 0)

@@ -6,23 +6,25 @@ const {logger} = require('./logging');
 const constants = require('./constants');
 
 async function main(){
+  logger.info('Started: load-build-artifacts...');
   utils.requireEnv([
     'CONTRACT_BUCKET_NAME'
   ]);
   const S3 = new AWS.S3();
   const prefix = process.env.CONTRACT_KEY_PREFIX || '';
-  logger.info('Listing contract build artifacts, prefix="%s"', prefix);
-  const buildArtifactObjects = await S3.listObjects({
-    Bucket: process.env.CONTRACT_BUCKET_NAME,
-    Prefix: prefix
-  }).promise();
-  if (!buildArtifactObjects.Contents){
-    loggger.info('No objects found');
-  }
-  for(const object of buildArtifactObjects.Contents){
-    logger.info('Found "%s" object', object.Key);
-    const filename = path.join(constants.CONTRACT_BUILD_DIR, path.basename(object.Key));
-    await utils.S3.loadToFile(S3, process.env.CONTRACT_BUCKET_NAME, object.Key, filename);
+  const key = path.join(prefix, constants.CONTRACT_ARTIFACTS_KEY);
+  try{
+    await utils.S3.loadToFile(S3, process.env.CONTRACT_BUCKET_NAME, key, constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
+    await utils.archive.unzip(constants.CONTRACT_ARTIFACTS_ZIP_FILENAME, constants.CONTRACT_BUILD_DIR);
+    logger.info('Deleting local build artifacts archive...');
+    await fs.unlink(constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
+    logger.info('Deleted');
+  }catch(e){
+    if(e.code == 'NoSuchKey'){
+      logger.info('Contract build artifacts archive object does not exits');
+    }else{
+      throw e;
+    }
   }
   logger.info('Done');
 }
@@ -34,6 +36,6 @@ module.exports = async function(done){
     done()
   }catch(e){
     logger.error('%s', e);
-    done()
+    process.exit(1);
   }
 }

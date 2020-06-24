@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const {exec} = require('child_process');
 const path = require('path');
 const md5 = require('md5');
 const {logger} = require('./logging');
@@ -14,6 +15,30 @@ module.exports = {
       }
     }
     logger.info('Required environment variables are in place.')
+  },
+  archive:{
+    zip: async function(dirname, out){
+      logger.info(`Zipping "${dirname}" into "${out}..."`);
+      return new Promise(function(resolve, reject){
+        exec(`zip -rj0 ${out} ${dirname}`, function(err, stdout, stderr){
+          if(err){reject(err); return}
+          if(stderr){reject(stderr); return}
+          logger.info(`Zipped "${dirname}" into "${out}"`);
+          resolve();
+        });
+      });
+    },
+    unzip: async function(filename, out){
+      logger.info(`Unzipping "${filename}" into "${out}..."`);
+      return new Promise(function(resolve, reject){
+        exec(`unzip -o ${filename} -d ${out}`, function(err, stdout, stderr){
+          if(err){reject(err); return}
+          if(stderr){reject(stderr); return}
+          logger.info(`Unzipped "${filename}" into "${out}"`);
+          resolve();
+        });
+      });
+    }
   },
   S3: {
     saveFile: async function(S3, filename, bucket, key){

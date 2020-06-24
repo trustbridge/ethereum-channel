@@ -16,6 +16,7 @@
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.35",
     "aws-sdk": "^2.701.0",
+    "lodash": "^4.17.15",
     "md5": "^2.2.1",
     "pino": "^6.3.2",
     "truffle": "^5.1.31"
