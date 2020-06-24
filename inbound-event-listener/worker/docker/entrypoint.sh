@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -e
 
 echo "Container started"
 
-tail -f /dev/null
+exec "$@"
