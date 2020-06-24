@@ -47,30 +47,6 @@ class Listener:
         self.__filter = None
         self.__update_filter()
 
-    def __create_filter_configs(self, config, contract, blocks_log_dir):
-        # if last seen block is None start from the first block
-        last_seen_block = self.__load_last_seen_block()
-        default_filter_config = {'fromBlock': last_seen_block}
-        # config.Event.Filter can override last seen block
-        filter_config = {**default_filter_config, **config.Event.Filter}
-        # if we are replacing previous filter
-        if self.__filter is not None:
-            filter_config['fromBlock'] = self.__from_block
-        self.__filter = contract.events[config.Event.Name].createFilter(**filter_config)
-        self.__logger.debug('new filter=%s', filter_config)
-
-    def __init__(self, contract=None, receivers=None, config=None, global_config=None):
-        self.__logger = logging.getLogger(config.Id)
-
-        self.__contract = contract
-        self.__config = config
-        self.__global_config = global_config
-        self.__receivers = tuple(receivers[id] for id in config.Receivers)
-        self.__from_block_filename = os.path.join(global_config.Worker.General.ListenerBlocksLogDir, config.Id)
-        self.__from_block = self.__load_from_block()
-        self.__filter = None
-        self.__update_filter()
-
     def poll(self):
 
         new_from_block = self.__from_block

@@ -6,6 +6,8 @@ WORKDIR /worker
 
 COPY docker/stage/install/python docker/stage/install/python
 
-RUN docker/stage/install/python/install.sh 
+RUN docker/stage/install/python/install.sh
 
-ENTRYPOINT /worker/docker/entrypoint.sh
+COPY ./ ./
+
+ENTRYPOINT ["/worker/docker/entrypoint.sh"]

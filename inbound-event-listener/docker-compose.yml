@@ -59,7 +59,7 @@ services:
     container_name: ec-iel-worker
     build:
       context: ${dockerstagedir:-.}/worker
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     command: tail -f /dev/null
     volumes:
       - '${dockerstagedir:-.}/worker:/worker'
@@ -67,6 +67,7 @@ services:
     networks:
       - internal
     environment:
+      CONTAINER_MODE: container
       CONFIG_FILE: /worker/config.yml
       AWS_ACCESS_KEY_ID: access
       AWS_SECRET_ACCESS_KEY: secretaccess
