@@ -11,12 +11,11 @@ services:
     container_name: trustbridge-ethereum-channel-websub-hub-localstack
     environment:
 
-      LAMBDA_EXECUTOR: docker-reuse
       EDGE_PORT: 10001
       PORT_WEB_UI: 9999
       HOSTNAME_EXTERNAL: trustbridge-ethereum-channel-websub-hub-localstack
       LOCALSTACK_HOSTNAME: trustbridge-ethereum-channel-websub-hub-localstack
-      SERVICES: sqs,s3,iam,lambda,apigateway
+      SERVICES: sqs,s3
       DEFAULT_REGION: us-east-1
 
       AWS_DEFAULT_REGION: us-east-1
@@ -40,3 +39,6 @@ services:
       - localstack
     volumes:
       - "${dockerstagedir:-.}/websub-hub:/websub-hub"
+    ports:
+      - '8080:8080'
+    env_file: ${dockerstagedir:-.}/websub-hub/docker/local.env
