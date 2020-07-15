@@ -35,6 +35,8 @@ services:
     build:
       context: ${dockerstagedir:-.}/websub-hub
       dockerfile: docker/Dockerfile
+    networks:
+      - internal
     depends_on:
       - localstack
     volumes:

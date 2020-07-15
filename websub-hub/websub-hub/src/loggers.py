@@ -6,6 +6,8 @@ from logging.config import dictConfig
 import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
 
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 
