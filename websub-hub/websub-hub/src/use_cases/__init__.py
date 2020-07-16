@@ -1,5 +1,6 @@
 import random
 import requests
+from libtrustbridge.websub import exceptions
 from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
 from src.repos import ChannelRepo
@@ -27,10 +28,6 @@ class SubscriptionRegisterUseCase:
         self.subscriptions_repo.subscribe_by_pattern(Pattern(topic), url, expiration)
 
 
-class SubscriptionNotFound(Exception):
-    pass
-
-
 class SubscriptionDeregisterUseCase:
     """
     Used by the subscription API
@@ -46,7 +43,7 @@ class SubscriptionDeregisterUseCase:
         subscriptions = self.subscriptions_repo.get_subscriptions_by_pattern(pattern)
         subscriptions_by_url = [s for s in subscriptions if s.callback_url == url]
         if not subscriptions_by_url:
-            raise SubscriptionNotFound()
+            raise exceptions.SubscriptionNotFoundError()
         self.subscriptions_repo.bulk_delete([pattern.to_key(url)])
 
 
@@ -62,7 +59,9 @@ class PostNotificationUseCase:
         topic = self.get_topic(message)
         job_payload = {
             'topic': topic,
-            'content': {'id': message.id}
+            'content': {
+                'id': message['id']
+            }
         }
         logger.debug('publish notification %r', job_payload)
         self.notifications_repo.post_job(job_payload)
@@ -79,7 +78,7 @@ class PublishNewMessageUseCase(PostNotificationUseCase):
 
     @staticmethod
     def get_topic(message):
-        return f"jurisdiction.{message.receiver}"
+        return f"jurisdiction.{message['message']['receiver']}"
 
 
 class NewMessagesNotifyUseCase:
@@ -94,13 +93,14 @@ class NewMessagesNotifyUseCase:
         self.receiver = receiver
 
     def execute(self):
-        message = self._get_new_message()
-        if not message:
+        # receiving MessageResponse dict from channel-api
+        queue_message = self.channel_repo.get_job()
+        if not queue_message:
             return False
-        PublishNewMessageUseCase(self.notification_repo).publish(message)
-
-    def _get_new_message(self):
-        return self.channel_repo.get()
+        queue_msg_id, message = queue_message
+        PublishNewMessageUseCase(self.notifications_repo).publish(message)
+        self.channel_repo.delete(queue_msg_id)
+        return True
 
 
 class InvalidCallbackResponse(Exception):
@@ -196,7 +196,6 @@ class DeliverCallbackUseCase:
         subscribe_url = job['s']
         payload = job['payload']
         attempt = int(job.get('retry', 1))
-
         try:
             logger.debug('[%s] deliver notification to %s with payload: %s (attempt %s)',
                          queue_msg_id, subscribe_url, payload, attempt)

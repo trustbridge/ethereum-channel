@@ -5,10 +5,11 @@ import marshmallow
 import requests
 from flask import Blueprint, Response, request, current_app
 from flask.views import MethodView
+from libtrustbridge import errors
 from libtrustbridge.utils.routing import mimetype
-from libtrustbridge.websub.constants import MODE_ATTR_SUBSCRIBE_VALUE
+from libtrustbridge.websub import constants
+from libtrustbridge.websub import exceptions
 from libtrustbridge.websub.repos import SubscriptionsRepo
-from libtrustbridge.websub.exceptions import SubscriptionNotFoundError
 from libtrustbridge.websub.schemas import SubscriptionForm
 from src import use_cases
 
@@ -39,19 +40,14 @@ class Subscriptions(MethodView):
         return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
 
     def _subscribe(self, callback, topic, lease_seconds):
-        repo = self._get_repo()
-        use_case = use_cases.SubscriptionRegisterUseCase(repo)
-        use_case.execute(callback, topic, lease_seconds)
+        repo = self._get_subscriptions_repo()
+        use_cases.SubscriptionRegisterUseCase(repo).execute(callback, topic, lease_seconds)
 
     def _unsubscribe(self, callback, topic):
-        repo = self._get_repo()
-        use_case = use_cases.SubscriptionDeregisterUseCase(repo)
-        try:
-            use_case.execute(callback, topic)
-        except use_cases.SubscriptionNotFound as e:
-            raise SubscriptionNotFoundError() from e
+        repo = self._get_subscriptions_repo()
+        use_cases.SubscriptionDeregisterUseCase(repo).execute(callback, topic)
 
-    def _verify_subscription_request_data(self, callback_url, mode, topic, lease_seconds):
+    def _verify_subscription_callback(self, callback_url, mode, topic, lease_seconds):
         challenge = str(uuid.uuid4())
         params = {
             'hub.mode': mode,
@@ -63,29 +59,27 @@ class Subscriptions(MethodView):
         if response.status_code == 200 and response.text == challenge:
             return
 
-        raise IntentVerificationFailure()
+        raise exceptions.CallbackURLValidationError()
 
     @mimetype(include=['application/x-www-form-urlencoded'])
     def post(self):
         try:
             form_data = SubscriptionForm().load(request.form.to_dict())
-        except marshmallow.ValidationError as e:  # TODO integrate marshmallow and libtrustbridge.errors.handlers
-            return JsonResponse(e.messages, status=HTTPStatus.BAD_REQUEST)
+        except marshmallow.ValidationError as e:
+            raise errors.ValidationError() from e
 
         topic = self.get_topic(form_data)
         callback = form_data['callback']
         mode = form_data['mode']
         lease_seconds = form_data['lease_seconds']
 
-        try:
-            self._verify_subscription_request_data(callback, mode, topic, lease_seconds)
-        except IntentVerificationFailure:
-            return JsonResponse({'error': 'Intent verification failed'}, status=HTTPStatus.BAD_REQUEST)
-
-        if mode == MODE_ATTR_SUBSCRIBE_VALUE:
+        if mode == constants.MODE_ATTR_SUBSCRIBE_VALUE:
+            self._verify_subscription_callback(callback, mode, topic, lease_seconds)
             self._subscribe(callback, topic, lease_seconds)
-        else:
+        elif mode == constants.MODE_ATTR_UNSUBSCRIBE_VALUE:
             self._unsubscribe(callback, topic)
+        else:
+            raise exceptions.UnknownModeError()
 
         return JsonResponse(status=HTTPStatus.ACCEPTED)
 
