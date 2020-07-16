@@ -44,9 +44,14 @@ def channel_repo():
 
 
 @pytest.fixture(scope='function')
-def client():
+def app():
     app = create_app()
-    test_client = app.test_client()
     with app.app_context():
         app.config['TESTING'] = True
+    return app
+
+
+@pytest.fixture(scope='function')
+def client(app):
+    test_client = app.test_client()
     yield test_client
