@@ -4,10 +4,7 @@ from libtrustbridge.websub import exceptions
 from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
 from src.repos import ChannelRepo
-from src.loggers import logging
-
-
-logger = logging.getLogger(__name__)
+from src.loggers import logger
 
 
 class SubscriptionRegisterUseCase:
@@ -98,6 +95,10 @@ class NewMessagesNotifyUseCase:
         if not queue_message:
             return False
         queue_msg_id, message = queue_message
+        # filtering messages based on the receiver property
+        # if we're not the receiver we must skip a message
+        if message['message']['receiver'] != self.receiver:
+            return
         PublishNewMessageUseCase(self.notifications_repo).publish(message)
         self.channel_repo.delete(queue_msg_id)
         return True
