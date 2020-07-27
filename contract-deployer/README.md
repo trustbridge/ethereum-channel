@@ -6,11 +6,11 @@ ECS truffle based contract deployment task
 
 **Key moments:**
 1. The task uses S3 as truffle build artifacts storage.
-1. The task loads a truffle project using volume.
+1. The task loads a truffle project using volume. Volume mount path ```/deployer/contract```.
 
 **Workflow**:
-1. Copy the truffle project from ```contract``` volume to ```contract-deployment``` directory to not change an original project code. Safety measure.
-1. Try to load existing truffle build artifacts zip from a specified S3 bucket and unzip it into ```contract-deployment/build/contracts```.
+1. Copy the truffle project from ```/deployer/contract``` volume to ```/deployer/contract-deployment``` directory to not change an original project code. Safety measure.
+1. Try to load existing truffle build artifacts zip from a specified S3 bucket and unzip it into ```/deployer/contract-deployment/build/contracts```.
 1. Run standard truffle ```deploy``` operation.
 1. Save the created/updated truffle build artifacts zip to the specified S3 bucket.
 1. Run self-test to double-check integrity of the saved build artifacts zip.
