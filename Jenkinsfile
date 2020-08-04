@@ -136,7 +136,7 @@ pipeline {
                     checkout scm
                 }
 
-                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/webshub-hub") {
+                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/websub-hub") {
                     sh '''#!/bin/bash
                         make build
                         make run
