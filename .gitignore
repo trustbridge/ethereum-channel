@@ -1,1 +1,5 @@
 ganache_data/
+
+# serverless packaging
+.serverless/
+node_modules/

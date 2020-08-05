@@ -127,6 +127,57 @@ pipeline {
                 }
             }
         }
+
+        stage('WebSub Hub') {
+
+            steps {
+                // Checkout into
+                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/") {
+                    checkout scm
+                }
+
+                dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/websub-hub") {
+                    sh '''#!/bin/bash
+                        make build
+                        make run
+
+                        sleep 30s
+
+                        docker-compose exec -T websub-hub flake8 --config=.flake8 src tests
+                        docker-compose exec -T websub-hub pytest --junitxml="/websub-hub/test-report.xml"
+                        docker-compose exec -T websub-hub make coverage
+                    '''
+                }
+
+            }
+
+            post {
+                always {
+                    dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/websub-hub") {
+                        junit 'websub-hub/test-report.xml'
+                        publishHTML(
+                            [
+                                allowMissing: true,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'websub-hub/htmlcov',
+                                reportFiles: 'index.html',
+                                reportName: 'WebSub Hub Coverage Reports',
+                                reportTitles: ''
+                            ]
+                        )
+                    }
+                }
+
+                cleanup {
+                    dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/websub-hub") {
+                        sh '''#!/bin/bash
+                            docker-compose down --rmi local -v --remove-orphans
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
