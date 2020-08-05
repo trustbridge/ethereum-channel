@@ -154,7 +154,7 @@ pipeline {
             post {
                 always {
                     dir("${env.DOCKER_BUILD_DIR}/test/ethereum-channel/websub-hub") {
-                        junit 'worker/test-report.xml'
+                        junit 'websub-hub/test-report.xml'
                         publishHTML(
                             [
                                 allowMissing: true,
