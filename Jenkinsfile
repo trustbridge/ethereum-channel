@@ -141,6 +141,8 @@ pipeline {
                         make build
                         make run
 
+                        sleep 30s
+
                         docker-compose exec -T websub-hub flake8 --config=.flake8 src tests
                         docker-compose exec -T websub-hub pytest --junitxml="/websub-hub/test-report.xml"
                         docker-compose exec -T websub-hub make coverage
