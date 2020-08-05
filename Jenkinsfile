@@ -162,7 +162,7 @@ pipeline {
                                 keepAll: true,
                                 reportDir: 'websub-hub/htmlcov',
                                 reportFiles: 'index.html',
-                                reportName: 'Inbound Event Worker Coverage Report',
+                                reportName: 'WebSub Hub Coverage Reports',
                                 reportTitles: ''
                             ]
                         )
