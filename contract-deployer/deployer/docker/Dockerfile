@@ -7,11 +7,22 @@ RUN apk update && \
   mkdir contract && \
   chown -R node /deployer
 
-COPY package*.json ./
-
 USER node
 
-RUN npm install
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV PATH=/home/node/.npm-global/bin:$PATH
+
+RUN npm install --global \
+  chai \
+  mocha \
+  pino \
+  pino-pretty \
+  md5 \
+  truffle \
+  @truffle/hdwallet-provider \
+  aws-sdk \
+  lodash \
+  @babel/core@^7.0.0-0
 
 COPY ./ ./
 

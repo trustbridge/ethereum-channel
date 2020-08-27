@@ -48,7 +48,7 @@ services:
     volumes:
       - '/deployer/node_modules'
       - '${dockerstagedir:-.}/deployer:/deployer'
-      - '${dockerstagedir:-.}/contract:/deployer/contract'
+      - '${dockerstagedir:-.}/contract:/tmp/contract'
     environment:
       CONTAINER_MODE: container
       SLEEP: 15

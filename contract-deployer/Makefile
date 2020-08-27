@@ -1,13 +1,13 @@
 .PHONY: run-fg
 .ONESHELL:
 run-fg: clean-contract-build
-	@ docker-compose up --build --remove-orphans
+	@ docker-compose up --build --remove-orphans  --renew-anon-volumes
 
 
 .PHONY: run
 .ONESHELL:
 run: clean-contract-build
-	@ docker-compose up --build --remove-orphans -d
+	@ docker-compose up --build --remove-orphans -d  --renew-anon-volumes
 
 
 .PHONY: clean-contract-build
