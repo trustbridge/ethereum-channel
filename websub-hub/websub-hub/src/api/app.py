@@ -1,17 +1,24 @@
-from flask import Flask, url_for
+from flask import Flask
 from libtrustbridge.errors import handlers as error_handlers
+from src import conf
 from src.loggers import logger
 from . import views
-from . import conf
 
 
 def create_app(config=None):
-    config = config or conf.Config()
+    default_config = dict(
+        SERVER_NAME=conf.SERVER_NAME,
+        SUBSCRIPTIONS_REPO_CONF=conf.SUBSCRIPTIONS_REPO,
+        TOPIC_BASE_URL=conf.TOPIC_BASE_URL,
+        DEBUG=conf.DEBUG,
+        TESTING=conf.TESTING
+    )
+    config = config or {}
+    config = {**default_config, **config}
     app = Flask(__name__)
-    app.config.from_object(config)
+    app.config.update(config)
     with app.app_context():
         app.logger = logger
         app.register_blueprint(views.blueprint)
         error_handlers.register(app)
-        app.config['HUB_URL'] = url_for('api.subscriptions_by_id')
     return app

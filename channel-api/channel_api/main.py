@@ -13,7 +13,8 @@ from .models import (
     MessageStatus,
     Transaction,
     TransactionReceipt)
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, FastAPI, Response, HTTPException, status
+from libtrustbridge.websub.domain import Pattern
 import json
 
 
@@ -22,6 +23,15 @@ app = FastAPI()
 
 # TODO: need a better way to get the contract ABI.
 # maybe we store in S3 as part of the contract deployment
+
+
+@app.get('/topic/{topic}', status_code=status.HTTP_200_OK)
+def get_topic(topic):
+    try:
+        Pattern(topic)._validate()
+        return topic
+    except ValueError:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
 @app.get("/participants")

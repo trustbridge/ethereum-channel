@@ -2,6 +2,7 @@ import pytest
 from libtrustbridge.websub import repos
 from libtrustbridge.utils.conf import env_s3_config, env_queue_config, env
 from src.api import create_app
+from src import conf
 from src.repos import ChannelRepo
 
 
@@ -10,6 +11,10 @@ DELIVERY_OUTBOX_REPO = env_queue_config('DELIVERY_OUTBOX_REPO')
 SUBSCRIPTIONS_REPO = env_s3_config('SUBSCRIPTIONS_REPO')
 CHANNEL_REPO = env_s3_config('CHANNEL_REPO')
 ENDPOINT = env('ENDPOINT', default='AU')
+
+TOPIC_BASE_URL = conf.env_base_url('TOPIC_BASE_URL')
+TOPIC_HUB_PATH = conf.env_base_url('TOPIC_HUB_PATH')
+HUB_URL = env('HUB_URL')
 
 
 @pytest.fixture(scope='function')

@@ -1,41 +1,47 @@
+import urllib
+from unittest import mock
+from http import HTTPStatus
+import pytest
 from src.processors.new_messages_observer import NewMessagesObserver
 from src.processors.callback_spreader import CallbackSpreader
 from src.processors.callback_delivery import CallbackDelivery
-from http import HTTPStatus
-from unittest import mock
+from tests import conftest
 
 
 @mock.patch('src.use_cases.requests')
-@mock.patch('src.api.views.requests')
-@mock.patch('src.api.views.uuid')
-def test(
+@mock.patch('src.use_cases.uuid')
+@pytest.mark.parametrize('url, subscription_topic, topic', [
+    ('/messages/subscriptions/by_jurisdiction', 'AU', 'jurisdiction.AU'),
+    ('/messages/subscriptions/by_id', 'jurisdiction.AU', 'jurisdiction.AU')
+])
+def test_subscriptions_by_jurisdiction(
     uuid,
-    views_requests,
     use_case_requests,
     client,
     app,
     subscriptions_repo,
     notifications_repo,
     delivery_outbox_repo,
-    channel_repo
+    channel_repo,
+    url,
+    subscription_topic,
+    topic
 ):
     # subscribing to notifications by jurisdiction
     challenge = 'xxxx'
-    topic = 'AU'
     uuid.uuid4.return_value = challenge
     callback_url = 'https://subsribers.com/1/callback'
-    views_response_mock = mock.MagicMock()
-    views_response_mock.status_code = 200
-    views_response_mock.text = challenge
-    views_requests.get.return_value = views_response_mock
-    url = '/messages/subscriptions/by_jurisdiction'
+    use_case_response_mock = mock.MagicMock()
+    use_case_response_mock.status_code = 200
+    use_case_response_mock.text = challenge
+    use_case_requests.get.return_value = use_case_response_mock
     request_data = {
         'hub.callback': callback_url,
-        'hub.topic': topic,
+        'hub.topic': subscription_topic,
         'hub.lease_seconds': 36000
     }
 
-    views_requests.reset_mock()
+    use_case_requests.reset_mock()
     response = client.post(
         url,
         data={**request_data, 'hub.mode': 'subscribe'},
@@ -63,9 +69,9 @@ def test(
     use_case_response_mock.status_code = 200
     next(callback_delivery)
     # callback delivery processor sends payload using requests library to each subscriber
-    with app.app_context():
-        request_header = {
-            'Link': f'<{app.config["HUB_URL"]}>; rel="hub"'
-        }
+    topic_self_url = urllib.parse.urljoin(conftest.TOPIC_HUB_PATH, topic)
+    request_header = {
+        'Link': f'<{conftest.HUB_URL}>; rel="hub", <{topic_self_url}>; rel="self"'
+    }
     # confirming that message was delivered
     use_case_requests.post.assert_called_once_with(callback_url, json={'id': message['id']}, headers=request_header)

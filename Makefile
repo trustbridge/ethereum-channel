@@ -46,3 +46,9 @@ shell-localstack:
 .ONESHELL:
 shell-channel-api:
 	@ docker-compose exec channel-api /bin/bash
+
+
+.PHONY: shell-websub-hub
+.ONESHELL:
+shell-websub-hub:
+	@ docker-compose exec websub-hub /bin/bash

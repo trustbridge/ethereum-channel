@@ -38,4 +38,5 @@ def test(
         queue_msg_id, queue_job = queue_job
         assert queue_job['s'] in subscribers
         assert queue_job['payload'] == job['content']
+        assert queue_job['topic'] == topic
     assert not delivery_outbox_repo.get_job()

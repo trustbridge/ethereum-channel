@@ -1,5 +1,7 @@
+import urllib
 from unittest import mock
 from src.processors.callback_delivery import CallbackDelivery
+from tests import conftest
 
 
 @mock.patch('src.use_cases.requests')
@@ -10,25 +12,29 @@ def test(
     delivery_outbox_repo,
     app
 ):
+    topic = 'jurisdiction.AU'
+    topic_self_url = urllib.parse.urljoin(conftest.TOPIC_HUB_PATH, topic)
+    assert topic_self_url == '/topic/jurisdiction.AU'
+    job = {
+        's': None,
+        'payload': {
+            'id': 'transaction-hash'
+        },
+        'topic': topic
+    }
     processor = CallbackDelivery()
     response = mock.MagicMock()
     response.status_code = 200
     requests.post.return_value = response
     with app.app_context():
         request_header = {
-            'Link': f'<{app.config["HUB_URL"]}>; rel="hub"'
+            'Link': f'<{conftest.HUB_URL}>; rel="hub", <{topic_self_url}>; rel="self"'
         }
     subscribers = [
         'subscriber/1',
         'subscriber/2',
         'subscriber/3'
     ]
-    job = {
-        's': None,
-        'payload': {
-            'id': 'transaction-hash'
-        }
-    }
     assert delivery_outbox_repo._unsafe_is_empty_for_test()
     # empty delivery outbox repo, the processor must do nothing
     next(processor)

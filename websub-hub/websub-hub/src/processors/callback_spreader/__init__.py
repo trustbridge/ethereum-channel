@@ -1,6 +1,6 @@
 from libtrustbridge.websub import repos
 from src.processors import SelfIteratingProcessor
-from src.processors import conf
+from src import conf
 from src import use_cases
 
 
