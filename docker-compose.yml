@@ -98,14 +98,14 @@ services:
     image: trustbridge-ethereum-channel/websub-hub
     container_name: trustbridge-ethereum-channel-websub-hub
     build:
-      context: ${dockerstagedir:-.}/websub-hub/websub-hub
+      context: ${dockerstagedir:-.}/websub-hub
       dockerfile: docker/Dockerfile
     networks:
       - internal
     depends_on:
       - localstack
     volumes:
-      - "${dockerstagedir:-.}/websub-hub/websub-hub:/websub-hub"
+      - "${dockerstagedir:-.}/websub-hub:/websub-hub"
     environment:
       IGL_SUBSCRIPTIONS_REPO_USE_SSL: 'False'
       IGL_SUBSCRIPTIONS_REPO_REGION: us-east-1
