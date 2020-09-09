@@ -56,7 +56,7 @@ services:
       - '${dockerstagedir:-.}/contract:/tmp/contract'
     environment:
       # container or task
-      CONTAINER_MODE: task
+      CONTAINER_MODE: container
       SLEEP: 30
 
       CONTRACT_BUCKET_NAME: contract
@@ -77,39 +77,39 @@ services:
       CHANNEL_NODE_DEPLOY_OPTS: '{}'
     networks:
       - internal
-
-  deployer-participant-jb:
-    image: trustbridge-ethereum-channel/deployer
-    container_name: trustbridge-ethereum-channel-deployer-participant-jb
-    build:
-      context: ${dockerstagedir:-.}/contract-deployer
-      dockerfile: docker/Dockerfile
-    volumes:
-      - '${dockerstagedir:-.}/contract-deployer:/deployer'
-      - '${dockerstagedir:-.}/contract:/tmp/contract'
-    environment:
-      # container or task
-      CONTAINER_MODE: task
-      SLEEP: 30
-
-      CONTRACT_BUCKET_NAME: contract
-      CONTRACT_KEY_PREFIX: channel-node-participant-jb
-
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-      AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
-
-      TRUFFLE_NETWORK_ID: 15
-      TRUFFLE_BLOCKCHAIN_ENDPOINT: ws://trustbridge-ethereum-channel-ganache-cli:8585
-      # Wallet pk used to deploy a contract. Wallet will become an owner of the contract.
-      TRUFFLE_WALLET_PK: "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"
-
-      # these are contract specific migration environment variables, depends on contract migration scripts
-      CHANNEL_NODE_DEPLOY_ARGS: '["JB"]'
-      CHANNEL_NODE_DEPLOY_OPTS: '{}'
-    networks:
-      - internal
+  #
+  # deployer-participant-jb:
+  #   image: trustbridge-ethereum-channel/deployer
+  #   container_name: trustbridge-ethereum-channel-deployer-participant-jb
+  #   build:
+  #     context: ${dockerstagedir:-.}/contract-deployer
+  #     dockerfile: docker/Dockerfile
+  #   volumes:
+  #     - '${dockerstagedir:-.}/contract-deployer:/deployer'
+  #     - '${dockerstagedir:-.}/contract:/tmp/contract'
+  #   environment:
+  #     # container or task
+  #     CONTAINER_MODE: task
+  #     SLEEP: 30
+  #
+  #     CONTRACT_BUCKET_NAME: contract
+  #     CONTRACT_KEY_PREFIX: channel-node-participant-jb
+  #
+  #     AWS_DEFAULT_REGION: us-east-1
+  #     AWS_ACCESS_KEY_ID: access
+  #     AWS_SECRET_ACCESS_KEY: secretaccess
+  #     AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
+  #
+  #     TRUFFLE_NETWORK_ID: 15
+  #     TRUFFLE_BLOCKCHAIN_ENDPOINT: ws://trustbridge-ethereum-channel-ganache-cli:8585
+  #     # Wallet pk used to deploy a contract. Wallet will become an owner of the contract.
+  #     TRUFFLE_WALLET_PK: "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"
+  #
+  #     # these are contract specific migration environment variables, depends on contract migration scripts
+  #     CHANNEL_NODE_DEPLOY_ARGS: '["JB"]'
+  #     CHANNEL_NODE_DEPLOY_OPTS: '{}'
+  #   networks:
+  #     - internal
   #
   # channel-api:
   #   image: trustbridge-ethereum-channel/channel-api

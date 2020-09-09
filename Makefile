@@ -24,10 +24,10 @@ build:
 	@ docker-compose build --no-cache
 
 
-.PHONY: shell-deployer
+.PHONY: shell-deployer-participant-ja
 .ONESHELL:
-shell-deployer:
-	@ docker-compose exec deployer /bin/bash
+shell-deployer-participant-ja:
+	@ docker-compose exec deployer-participant-ja /bin/bash
 
 
 .PHONY: shell-ganache-cli

@@ -6,6 +6,7 @@ const AWS = require('./aws');
 const utils = require('./utils');
 const {logger} = require('./logging');
 const constants = require('./constants');
+const loadBuildArtifacts = require('./load-build-artifacts-function.js');
 
 async function main(){
   logger.info('Started: self-test...');
@@ -13,35 +14,35 @@ async function main(){
     'CONTRACT_BUCKET_NAME'
   ]);
   const S3 = new AWS.S3();
+  const bucket = process.env.CONTRACT_BUCKET_NAME;
   const prefix = process.env.CONTRACT_KEY_PREFIX || '';
   const key = path.join(prefix, constants.CONTRACT_ARTIFACTS_KEY);
-  const tmpDirectory = await fs.mkdtemp(path.join(os.tmpdir(),'deployer_'));
+  const tmpDirectory = await fs.mkdtemp(path.join(os.tmpdir(),'deployer_self_test_'));
   logger.info('Created temp dir %s', tmpDirectory);
   try{
-    await utils.S3.loadToFile(S3, process.env.CONTRACT_BUCKET_NAME, key, constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
-    await utils.archive.unzip(constants.CONTRACT_ARTIFACTS_ZIP_FILENAME, tmpDirectory);
-    logger.info('Deleting local build artifacts archive...');
-    await fs.unlink(constants.CONTRACT_ARTIFACTS_ZIP_FILENAME);
-    logger.info('Reading local and S3 files lists');
-    const S3ArchiveFiles = await fs.readdir(tmpDirectory);
-    const localArchiveFiles = await fs.readdir(constants.CONTRACT_BUILD_DIR);
-    S3ArchiveFiles.sort();
-    localArchiveFiles.sort();
-    logger.info('S3=%O | local=%O', S3ArchiveFiles, localArchiveFiles);
-    if(!_.isEqual(S3ArchiveFiles, localArchiveFiles)){
-      throw new Error('local build artifacts and s3 build artifacts filename lists are not equal');
+    await loadBuildArtifacts(S3, bucket, prefix, tmpDirectory);
+    const s3ArtifactFiles = await fs.readdir(tmpDirectory);
+    const localArtifactFiles = await fs.readdir(constants.CONTRACT_BUILD_DIR);
+    s3ArtifactFiles.sort();
+    localArtifactFiles.sort();
+    logger.info('Comparing artifact lists, local and S3...');
+    logger.info('Local artifact files %O', localArtifactFiles);
+    logger.info('S3 artifact files %O', s3ArtifactFiles);
+    if(_.isEqual(s3ArtifactFiles, localArtifactFiles)){
+      logger.info('Artifact lists are equal');
     }else{
-      logger.info('local build artifacts and s3 build artifacts filename lists are equal');
+      throw new Error('Artifact lists are not equal!');
     }
-    for(const filename of S3ArchiveFiles){
-      const localFilename = path.join(constants.CONTRACT_BUILD_DIR, filename);
-      const S3Filename = path.join(tmpDirectory, filename);
-      const localFile = await fs.readFile(localFilename);
-      const S3File = await fs.readFile(S3Filename);
-      if(!localFile.equals(S3File)){
-        throw new Error(`S3 ${filename} != local ${filename}`);
+    logger.info('Comparing files...');
+    for(const artifact of localArtifactFiles){
+      const localArtifactFilename = path.join(constants.CONTRACT_BUILD_DIR, artifact);
+      const s3ArtifactFilename = path.join(tmpDirectory, artifact);
+      const localArtifactFile = await fs.readFile(localArtifactFilename);
+      const s3ArtifactFile = await fs.readFile(s3ArtifactFilename);
+      if(!localArtifactFile.equals(s3ArtifactFile)){
+        throw new Error(`S3 ${artifact} != local ${artifact}`);
       }else{
-        logger.info(`S3 ${filename} = local ${filename}`);
+        logger.info(`S3 ${artifact} = local ${artifact}`);
       }
     }
   }catch(e){
@@ -51,7 +52,7 @@ async function main(){
       throw e;
     }
   }
-  logger.info('Done');
+  logger.info('Completed: self-test');
 }
 
 

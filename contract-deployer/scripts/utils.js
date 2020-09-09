@@ -16,54 +16,65 @@ module.exports = {
     }
     logger.info('Required environment variables are in place.')
   },
-  archive:{
-    zip: async function(dirname, out){
-      logger.info(`Zipping "${dirname}" into "${out}..."`);
-      return new Promise(function(resolve, reject){
-        exec(`zip -rj0 ${out} ${dirname}`, function(err, stdout, stderr){
-          if(err){reject(err); return}
-          if(stderr){reject(stderr); return}
-          logger.info(`Zipped "${dirname}" into "${out}"`);
-          resolve();
-        });
-      });
-    },
-    unzip: async function(filename, out){
-      logger.info(`Unzipping "${filename}" into "${out}..."`);
-      return new Promise(function(resolve, reject){
-        exec(`unzip -o ${filename} -d ${out}`, function(err, stdout, stderr){
-          if(err){reject(err); return}
-          if(stderr){reject(stderr); return}
-          logger.info(`Unzipped "${filename}" into "${out}"`);
-          resolve();
-        });
-      });
+  fs:{
+    listdirfiles: async function(dirname){
+      return (await fs.readdir(dirname)).map(p=>path.join(dirname, p));
     }
   },
   S3: {
-    saveFile: async function(S3, filename, bucket, key){
-      logger.info('Saving "%s" to "%s" bucket under "%s" key...', filename, bucket, key);
+    saveFile: async function(S3, filename, Bucket, Key){
+      logger.info('Saving "%s" to "%s" bucket under "%s" key...', filename, Bucket, Key);
       const filedata = await fs.readFile(filename);
       await S3.putObject({
         Body: filedata,
         ContentMD5: new Buffer(md5(filedata), 'hex').toString('base64'),
-        Bucket: bucket,
-        Key: key
+        Bucket,
+        Key
       }).promise();
       logger.info('Saved');
     },
-    loadToFile: async function(S3, bucket, key, filename){
-      logger.info('Saving S3 object under key "%s" from bucket "%s" as file "%s"...', key, bucket, filename);
+    loadToFile: async function(S3, Bucket, Key, filename){
+      logger.info('Saving S3 object under key "%s" from bucket "%s" as file "%s"...', Key, Bucket, filename);
       logger.info('Loading file from S3...');
       const response = await S3.getObject({
-        Bucket: bucket,
-        Key: key
+        Bucket,
+        Key
       }).promise();
       logger.info('Loaded. Saving file to FS...');
       const dirname = path.dirname(filename);
       await fs.mkdir(dirname, {recursive: true});
       await fs.writeFile(filename, response.Body);
       logger.info('Saved');
+    },
+    listObjects: async function(S3, Bucket, Prefix, MaxKeys){
+      logger.info('Listing objects from bucket "%s" under prefix "%s"...', Bucket, Prefix);
+      if (MaxKeys !== undefined){
+        logger.info('Max keys per page %s', MaxKeys);
+      }
+      const objects = [];
+      let ContinuationToken = undefined;
+      let page = 1;
+      while(true){
+        logger.info('Loading objects, page %s', page);
+        const data = await S3.listObjectsV2({
+          Bucket,
+          Prefix,
+          MaxKeys,
+          ContinuationToken
+        }).promise();
+        logger.info('Page loaded. Found %s object(s)', data.Contents.length);
+        for(const object of data.Contents){
+          objects.push(object);
+        }
+        if(!data.IsTruncated){
+          logger.info('Last page');
+          break;
+        }else{
+          ContinuationToken = data.NextContinuationToken;
+        }
+      }
+      logger.info('Found %s object(s)', objects.length);
+      return objects;
     }
   }
 }
