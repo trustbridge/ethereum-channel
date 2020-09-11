@@ -5,8 +5,8 @@ from typing import Any, Callable, List, Optional
 
 class Config(BaseModel):
     confirmation_threshold: int
-    contract_address: str
-    key: str
+    contract_owner_private_key: str
+    sender_ref: str
 
 
 class MessageStatus(str, Enum):

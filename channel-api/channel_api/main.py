@@ -1,9 +1,8 @@
 from .lib import (
-    get_abi,
-    get_client,
     get_config,
     get_contract,
-    get_w3
+    get_w3,
+    transaction_status
 )
 from .models import (
     Config,
@@ -19,10 +18,6 @@ import json
 
 
 app = FastAPI()
-
-
-# TODO: need a better way to get the contract ABI.
-# maybe we store in S3 as part of the contract deployment
 
 
 @app.get('/topic/{topic}', status_code=status.HTTP_200_OK)
@@ -43,28 +38,16 @@ def get_participants(contract: object = Depends(get_contract)):
 
 @app.get("/messages/{id}", response_model=MessageResponse)
 def get_message(id: str,
-                client: EthereumClient = Depends(get_client),
+                w3: EthereumClient = Depends(get_w3),
                 config: Config = Depends(get_config),
-                contract_abi: dict = Depends(get_abi)) -> MessageResponse:
-    txn = client.getTransaction(id)
-    txn_receipt = client.getTransactionReceipt(id)
-
-    contract = client.contract(config.contract_address, abi=contract_abi)
-
-    current_block = client.blockNumber
-    txn_block = txn.blockNumber
-
-    if txn_receipt.status is False:
-        status = MessageStatus.UNDELIVERABLE
-    elif txn_block is None:
-        status = MessageStatus.RECEIVED
-    else:
-        if current_block - txn_block > config.confirmation_threshold:
-            status = MessageStatus.CONFIRMED
-        else:
-            status = MessageStatus.RECEIVED
-
+                contract: object = Depends(get_contract)
+                ) -> MessageResponse:
+    txn = w3.eth.getTransaction(id)
+    txn_receipt = w3.eth.getTransactionReceipt(id)
+    current_block = w3.eth.blockNumber
+    status = transaction_status(txn_receipt, current_block, config.confirmation_threshold)
     txn_payload = contract.decode_function_input(txn.input)[1]['message']
+
     message_payload = MessageRequest(
         subject=txn_payload[1],
         predicate=txn_payload[2],
@@ -83,33 +66,28 @@ def get_message(id: str,
 @app.post("/messages", response_model=MessageResponse)
 async def create_message(message: MessageRequest,
                          response: Response,
-                         client: EthereumClient = Depends(get_client),
                          w3: EthereumClient = Depends(get_w3),
                          config: Config = Depends(get_config),
-                         contract_abi: dict = Depends(get_abi)):
-
-    contract = client.contract(config.contract_address, abi=contract_abi)
+                         contract: object = Depends(get_contract)):
 
     msg = {
         "subject": message.subject,
         "predicate": message.predicate,
         "object": message.obj,
         "sender": message.sender,
-        "receiver": message.receiver
+        "receiver": message.receiver,
+        "sender_ref": config.sender_ref
     }
 
-    account = client.account.privateKeyToAccount(config.key)
-    nonce = client.getTransactionCount(account.address)
+    account = w3.eth.account.privateKeyToAccount(config.contract_owner_private_key)
+    nonce = w3.eth.getTransactionCount(account.address)
 
-    # tx_hash = contract.functions.send(msg).transact()
+    # gas price and gas amount should be determined automatically using ethereum node API
     txn = contract.functions.send(msg).buildTransaction({
-        'gas': 70000,
-        'gasPrice': w3.toWei('1', 'gwei'),
-        'nonce': nonce  # client.getTransactionCount(account.address)
+        'nonce': nonce
     })
-    signed_txn = client.account.sign_transaction(
-        txn, private_key=config.key)
-    tx_hash = client.sendRawTransaction(signed_txn.rawTransaction)
+    signed_txn = w3.eth.account.sign_transaction(txn, private_key=config.contract_owner_private_key)
+    tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
     # sqs.send_message(
     #     QueueUrl=os.environ['OUTBOUND_MESSAGE_QUEUE_URL'], MessageBody=tx_hash.hex())
 

@@ -1,4 +1,5 @@
 from web3 import Web3
+from libtrustbridge.utils.conf import string_or_b64kms
 from .models import (
     Config,
     EthereumClient,
@@ -11,89 +12,35 @@ from .models import (
 import boto3
 import json
 import os
-import base64
-import logging
 
-sqs = boto3.client('sqs')
+sqs = boto3.resource('sqs', endpoint_url=os.environ.get('AWS_ENDPOINT_URL'))
+s3 = boto3.resource('s3', endpoint_url=os.environ.get('AWS_ENDPOINT_URL'))
 
-BASE64_PREFIX_1 = 'base64:'
-BASE64_PREFIX_2 = 'kms+base64:'
-AWS_REGION = os.environ.get('AWS_REGION', None)
+CONTRACT_BUCKET = os.environ['CONTRACT_BUCKET']
+CONTRACT_BUILD_ARTIFACT_KEY = os.environ['CONTRACT_BUILD_ARTIFACT_KEY']
+CONTRACT_NETWORK_ID = str(int(os.environ['CONTRACT_NETWORK_ID']))
+CONTRACT_OWNER_PRIVATE_KEY = os.environ['CONTRACT_OWNER_PRIVATE_KEY']
 
-
-def decrypt_kms_data(encrypted_data):
-    """Decrypt KMS encoded data."""
-    import boto3  # local import so we don't need it installed for demo and local
-    if not AWS_REGION:
-        logging.error(
-            "Trying to decrypt KMS value but no AWS region set"
-        )
-        return None
-
-    kms = boto3.client('kms', region_name=AWS_REGION)
-    decrypted = kms.decrypt(CiphertextBlob=encrypted_data)
-
-    if decrypted.get('KeyId'):
-        # Decryption succeed
-        decrypted_value = decrypted.get('Plaintext', '')
-        if isinstance(decrypted_value, bytes):
-            decrypted_value = decrypted_value.decode('utf-8')
-        return decrypted_value
-
-
-def string_or_b64kms(value):
-    """Check if value is base64 encoded - if yes, decode it using KMS."""
-
-    if not value:
-        return value
-
-    try:
-        # Check if environment value base64 encoded
-        if isinstance(value, (str, bytes)):
-            encrypted_value = None
-            if value.startswith(BASE64_PREFIX_1):
-                encrypted_value = value[len(BASE64_PREFIX_1):]
-            elif value.startswith(BASE64_PREFIX_2):
-                encrypted_value = value[len(BASE64_PREFIX_2):]
-            else:
-                # non-encrypted value
-                return value
-            # If yes, decode it using AWS KMS
-            data = base64.b64decode(encrypted_value)
-            decrypted_value = decrypt_kms_data(data)
-
-            # If decryption succeed, use it
-            if decrypted_value:
-                value = decrypted_value
-    except Exception as e:
-        logging.exception(e)
-    return value
-
-
-def get_client() -> EthereumClient:
-    w3 = Web3(Web3.HTTPProvider(
-        os.environ['RPC_URL']))
-    return w3.eth
-
-
-def get_w3() -> EthereumClient:
-    w3 = Web3(Web3.HTTPProvider(
-        os.environ['RPC_URL']))
-    return w3
+HTTP_BLOCKCHAIN_ENDPOINT = os.environ['HTTP_BLOCKCHAIN_ENDPOINT']
+SENDER_REF = os.environ['SENDER_REF']
 
 
 def get_config() -> Config:
 
     return Config(
         confirmation_threshold=12,
-        contract_address=os.environ['CONTRACT_ADDRESS'],
-        key=string_or_b64kms(os.environ['PRIVATE_KEY'])  # TODO: will need to decrypt
+        contract_owner_private_key=string_or_b64kms(CONTRACT_OWNER_PRIVATE_KEY),
+        sender_ref=SENDER_REF
     )
 
 
+def get_w3() -> EthereumClient:
+    w3 = Web3(Web3.HTTPProvider(HTTP_BLOCKCHAIN_ENDPOINT))
+    return w3
+
+
 def get_transaction(id: str) -> Transaction:
-    w3 = Web3(Web3.HTTPProvider(
-        os.environ['PROVIDER_URL']))
+    w3 = get_w3()
 
     transaction = w3.eth.getTransaction(id)
 
@@ -101,8 +48,7 @@ def get_transaction(id: str) -> Transaction:
 
 
 def get_transaction_receipt(id: str):
-    w3 = Web3(Web3.HTTPProvider(
-        os.environ['PROVIDER_URL']))
+    w3 = get_w3()
 
     transaction_receipt = w3.eth.getTransactionReceipt(id)
 
@@ -122,20 +68,22 @@ def transaction_status(
             status = MessageStatus.CONFIRMED
         else:
             status = MessageStatus.RECEIVED
+    return status
 
 
-# TODO: once abi being stored in s3 then this needs to be
-# changed to pull from there instead
-def get_abi():
-    abi_string = '[{"inputs": [{"internalType": "string[]", "name": "_participantList", "type": "string[]"}], "stateMutability": "nonpayable", "type": "constructor"}, {"anonymous": false, "inputs": [{"components": [{"internalType": "string", "name": "subject", "type": "string"}, {"internalType": "string", "name": "predicate", "type": "string"}, {"internalType": "string", "name": "object", "type": "string"}, {"internalType": "string", "name": "sender", "type": "string"}, {"internalType": "string", "name": "receiver", "type": "string"}], "indexed": false, "internalType": "struct ChannelNode.Message", "name": "message", "type": "tuple"}], "name": "MessageReceivedEvent", "type": "event"}, {"anonymous": false, "inputs": [{"indexed": false, "internalType": "string", "name": "subject", "type": "string"}], "name": "MessageSentEvent", "type": "event"}, {"inputs": [], "name": "owner", "outputs": [{"internalType": "address", "name": "", "type": "address"}], "stateMutability": "view", "type": "function"}, {"inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "name": "participantList", "outputs": [{"internalType": "string", "name": "", "type": "string"}], "stateMutability": "view", "type": "function"}, {"inputs": [{"internalType": "string", "name": "", "type": "string"}], "name": "participants", "outputs": [{"internalType": "address", "name": "participantAddress", "type": "address"}, {"internalType": "contract ChannelNode", "name": "participantContract", "type": "address"}], "stateMutability": "view", "type": "function"}, {"inputs": [], "name": "getParticipants", "outputs": [{"internalType": "string[]", "name": "", "type": "string[]"}], "stateMutability": "view", "type": "function"}, {"inputs": [{"internalType": "string", "name": "participant", "type": "string"}], "name": "getParticipant", "outputs": [{"components": [{"internalType": "address", "name": "participantAddress", "type": "address"}, {"internalType": "contract ChannelNode", "name": "participantContract", "type": "address"}], "internalType": "struct ChannelNode.Participant", "name": "", "type": "tuple"}], "stateMutability": "view", "type": "function"}, {"inputs": [{"internalType": "string", "name": "_name", "type": "string"}, {"internalType": "address", "name": "_address", "type": "address"}], "name": "addParticipant", "outputs": [], "stateMutability": "nonpayable", "type": "function"}, {"inputs": [{"internalType": "string", "name": "_name", "type": "string"}, {"internalType": "address", "name": "_address", "type": "address"}], "name": "updateParticipantContractAddress", "outputs": [], "stateMutability": "nonpayable", "type": "function"}, {"inputs": [{"components": [{"internalType": "string", "name": "subject", "type": "string"}, {"internalType": "string", "name": "predicate", "type": "string"}, {"internalType": "string", "name": "object", "type": "string"}, {"internalType": "string", "name": "sender", "type": "string"}, {"internalType": "string", "name": "receiver", "type": "string"}], "internalType": "struct ChannelNode.Message", "name": "message", "type": "tuple"}], "name": "receiveMessage", "outputs": [], "stateMutability": "nonpayable", "type": "function"}, {"inputs": [{"components": [{"internalType": "string", "name": "subject", "type": "string"}, {"internalType": "string", "name": "predicate", "type": "string"}, {"internalType": "string", "name": "object", "type": "string"}, {"internalType": "string", "name": "sender", "type": "string"}, {"internalType": "string", "name": "receiver", "type": "string"}], "internalType": "struct ChannelNode.Message", "name": "message", "type": "tuple"}], "name": "send", "outputs": [], "stateMutability": "nonpayable", "type": "function"}]'
-    abi = json.loads(abi_string)
-    return abi
+def get_contract_truffle_build_artifact():
+    bucket = s3.Bucket(CONTRACT_BUCKET)
+    contract_build_artifact_object = bucket.Object(CONTRACT_BUILD_ARTIFACT_KEY)
+    contract_build_artifact = json.load(contract_build_artifact_object.get()['Body'])
+    return contract_build_artifact
 
 
 def get_contract():
     w3 = get_w3()
-    ABI = get_abi()
 
-    contract = w3.eth.contract(contract_address, abi=ABI)
+    contract_build_artifact = get_contract_truffle_build_artifact()
+    contract_address = contract_build_artifact['networks'][CONTRACT_NETWORK_ID]['address']
+    contract_abi = json.dumps(contract_build_artifact['abi'])
+    contract = w3.eth.contract(contract_address, abi=contract_abi)
 
     return contract
