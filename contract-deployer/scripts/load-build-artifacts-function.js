@@ -4,7 +4,7 @@ const {logger} = require('./logging');
 
 
 async function loadBuildArtifacts(S3, bucket, prefix, dirname){
-  logger.info('Loading build artifacts from bucket "%s" with prefix "%s" into "%s"...', bucket, prefix, dirname);
+  logger.info('Loading build artifacts bucket://%s/%s" -> "%s"...', bucket, prefix, dirname);
   const artifactObjects = await utils.S3.listObjects(S3, bucket, prefix);
   for(const artifactObject of artifactObjects){
     const artifactKey = artifactObject.Key;

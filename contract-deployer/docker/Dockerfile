@@ -3,7 +3,7 @@ FROM node:10-alpine
 WORKDIR /deployer
 
 RUN apk update && \
-  apk add --no-cache git bash make gcc g++ python3 zip && \
+  apk add --no-cache git bash make gcc g++ python3 zip rsync && \
   mkdir contract && \
   chown -R node /deployer
 
@@ -26,4 +26,6 @@ RUN npm install --global \
 
 COPY ./ ./
 
-ENTRYPOINT  /deployer/docker/entrypoint.sh
+ENTRYPOINT ["/deployer/docker/entrypoint.sh"]
+
+CMD ["-d"]

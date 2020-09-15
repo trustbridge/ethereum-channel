@@ -1,18 +1,56 @@
 #!/usr/bin/env bash
 
-sleep $SLEEP
+set -o errexit
 
-set -euo pipefail
+cd /deployer
 
-case "${CONTAINER_MODE,,}" in
-  task)
-    cd /deployer
-    bash scripts/deploy.sh
-    ;;
-  container)
-    echo "Container started"
-    tail -f /dev/null
-    ;;
-  *)
-    echo "No mode specified" && exit 1
-esac
+function usage(){
+  cat <<END
+USAGE:
+  -s[str] - sleep before starting execution, uses sleep command argument format
+  -e[str] - start a contract(external) script, value is a path to the script inside the contract directory
+  -c[flag] - prevent this script from exiting after completion, usefull for docker debugging
+  -d[flag] - start deployment procedure
+END
+}
+
+while getopts ":s:e:dch" opt; do
+  case ${opt} in
+    c )
+      CONTINUE=1
+      ;;
+    s ) # process option h
+      SLEEP="$OPTARG"
+      ;;
+    d ) # process option t
+      DEPLOY=1
+      ;;
+    e ) # process option t
+      EXTERNAL_SCRIPTS+=("$OPTARG")
+      ;;
+    h )
+      HELP=1
+      ;;
+    \? )
+      HELP=1
+      ;;
+  esac
+done
+if [[ -n "$HELP" ]]; then
+  usage;
+  exit 1
+fi
+if [[ -n "$SLEEP" ]]; then
+  echo "Sleep $SLEEP"
+  sleep "$SLEEP"
+fi
+if [[ -n "$DEPLOY" ]]; then
+  bash scripts/deploy.sh
+fi
+for SCRIPT in "${EXTERNAL_SCRIPTS[@]}"; do
+  bash scripts/exec-external.sh "$SCRIPT"
+done
+if [[ -n "$CONTINUE" ]]; then
+  echo "Waiting forever..."
+  tail -f /dev/null
+fi

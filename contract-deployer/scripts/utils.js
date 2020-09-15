@@ -5,6 +5,10 @@ const md5 = require('md5');
 const {logger} = require('./logging');
 
 module.exports = {
+  sleep: async function(seconds) {
+    logger.info('Sleep for %s second(s)', seconds);
+    return new Promise(resolve => setTimeout(resolve, seconds*1000));
+  },
   requireEnv: function(requiredEnvVarsNames){
     logger.info('Checking required environment variables...');
     for(const name of requiredEnvVarsNames){
@@ -23,7 +27,7 @@ module.exports = {
   },
   S3: {
     saveFile: async function(S3, filename, Bucket, Key){
-      logger.info('Saving "%s" to "%s" bucket under "%s" key...', filename, Bucket, Key);
+      logger.info('Saving %s -> bucket://%s/%s...', filename, Bucket, Key);
       const filedata = await fs.readFile(filename);
       await S3.putObject({
         Body: filedata,
@@ -33,8 +37,33 @@ module.exports = {
       }).promise();
       logger.info('Saved');
     },
+    exists: async function(S3, Bucket, Key){
+      logger.info('Checking existence of S3 object bucket://%s/%s ...', Bucket, Key);
+      try{
+        const response = await S3.headObject({
+          Bucket,
+          Key
+        }).promise();
+        logger.info('Object found');
+        return true;
+      }catch(e){
+        if(e.code === 'NotFound'){
+          logger.info('Object not found');
+          return false;
+        }
+        throw e;
+      }
+    },
+    loadJSON: async function(S3, Bucket, Key){
+      logger.info('Loading S3 object bucket://%s/%s as JSON...', Key, Bucket);
+      const response = await S3.getObject({
+        Bucket,
+        Key
+      }).promise();
+      return JSON.parse(response.Body);
+    },
     loadToFile: async function(S3, Bucket, Key, filename){
-      logger.info('Saving S3 object under key "%s" from bucket "%s" as file "%s"...', Key, Bucket, filename);
+      logger.info('Saving S3 object bucket://%s/%s -> %s"...',Bucket, Key, filename);
       logger.info('Loading file from S3...');
       const response = await S3.getObject({
         Bucket,
@@ -47,7 +76,7 @@ module.exports = {
       logger.info('Saved');
     },
     listObjects: async function(S3, Bucket, Prefix, MaxKeys){
-      logger.info('Listing objects from bucket "%s" under prefix "%s"...', Bucket, Prefix);
+      logger.info('Listing objects bucket://%s/%s...', Bucket, Prefix);
       if (MaxKeys !== undefined){
         logger.info('Max keys per page %s', MaxKeys);
       }
