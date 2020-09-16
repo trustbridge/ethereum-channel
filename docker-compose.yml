@@ -1,28 +1,58 @@
+# "tec" stands for trustbridge ethereum channel
+
 version: '3.5'
 
 networks:
   internal:
-    name: trustbridge-ethereum-channel-internal
+    name: tec-internal
+
+x-services:
+  deployer: &deployer
+    image: tec/deployer
+    container_name: tec-deployer
+    build:
+      context: ${dockerstagedir:-.}/contract-deployer
+      dockerfile: docker/Dockerfile
+    volumes:
+      - '${dockerstagedir:-.}/contract-deployer:/deployer'
+      - '${dockerstagedir:-.}/contract:/tmp/contract'
+    command: -s 30 -d -e scripts/channel-nodes-pairing.js
+    networks:
+      - internal
+
+  channel-api: &channel-api
+    image: tec/channel-api
+    container_name: tec-channel-api
+    build:
+     context: '${dockerstagedir:-.}/channel-api'
+     dockerfile: docker/Dockerfile
+    volumes:
+     - '/channel-api/node_modules'
+     - '${dockerstagedir:-.}/channel-api:/channel-api'
+    networks:
+      - internal
+    ports:
+      - '9090:9090'
+
+  websub-hub: &websub-hub
+    image: tec/websub-hub
+    container_name: tec-websub-hub
+    build:
+      context: ${dockerstagedir:-.}/websub-hub
+      dockerfile: docker/Dockerfile
+    networks:
+      - internal
+    depends_on:
+      - localstack
+    volumes:
+      - "${dockerstagedir:-.}/websub-hub:/websub-hub"
+
 
 services:
   localstack:
     image: localstack/localstack
-    container_name: trustbridge-ethereum-channel-localstack
-    environment:
-
-      LAMBDA_EXECUTOR: docker-reuse
-      EDGE_PORT: 10001
-      PORT_WEB_UI: 9999
-      HOSTNAME_EXTERNAL: trustbridge-ethereum-channel-localstack
-      LOCALSTACK_HOSTNAME: trustbridge-ethereum-channel-localstack
-      # SERVICES: sqs,s3,iam,lambda,apigateway
-      SERVICES: sqs,s3
-      DEFAULT_REGION: us-east-1
-
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-
+    container_name: tec-localstack
+    env_file: localstack.env
     networks:
       - internal
     volumes:
@@ -31,7 +61,7 @@ services:
 
   ganache-cli:
     image: trufflesuite/ganache-cli
-    container_name: trustbridge-ethereum-channel-ganache-cli
+    container_name: tec-ganache-cli
     networks:
       - internal
     command: >
@@ -47,227 +77,30 @@ services:
         --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
 
   deployer-participant-ja:
-    image: trustbridge-ethereum-channel/deployer
-    container_name: trustbridge-ethereum-channel-deployer-participant-ja
-    build:
-      context: ${dockerstagedir:-.}/contract-deployer
-      dockerfile: docker/Dockerfile
-    volumes:
-      - '${dockerstagedir:-.}/contract-deployer:/deployer'
-      - '${dockerstagedir:-.}/contract:/tmp/contract'
-    command: -s 30 -d -e scripts/channel-nodes-pairing.js
-    environment:
-
-      CONTRACT_BUCKET_NAME: contract
-      CONTRACT_KEY_PREFIX: channel-node-participant-ja
-
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-      AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
-
-      TRUFFLE_NETWORK_ID: 15
-      TRUFFLE_BLOCKCHAIN_ENDPOINT: ws://trustbridge-ethereum-channel-ganache-cli:8585
-      # Wallet pk used to deploy a contract. Wallet will become an owner of the contract.
-      # Adress = 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
-      TRUFFLE_WALLET_PK: "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
-
-      # these are contract specific migration environment variables, depends on contract migration scripts
-      CHANNEL_NODE_DEPLOY_ARGS: '["JB"]'
-      CHANNEL_NODE_DEPLOY_OPTS: '{}'
-      CHANNEL_NODES_PAIRING_CONFIG: >
-        {
-          "build": {
-              "artifact": {
-                  "key": "channel-node-participant-jb/ChannelNode.json",
-                  "bucket": "contract"
-              }
-          },
-          "network": "15",
-          "participant": {
-              "our": "JA",
-              "their": "JB"
-          }
-        }
-    networks:
-      - internal
+    <<: *deployer
+    container_name: tec-deployer-participant-ja
+    env_file: deployer-participant-ja.env
 
   deployer-participant-jb:
-    image: trustbridge-ethereum-channel/deployer
-    container_name: trustbridge-ethereum-channel-deployer-participant-jb
-    build:
-      context: ${dockerstagedir:-.}/contract-deployer
-      dockerfile: docker/Dockerfile
-    volumes:
-      - '${dockerstagedir:-.}/contract-deployer:/deployer'
-      - '${dockerstagedir:-.}/contract:/tmp/contract'
-    command: -s 30 -d -e scripts/channel-nodes-pairing.js
-    environment:
-      # container or task
-      CONTAINER_MODE: task
-      # SLEEP: 30
-
-      CONTRACT_BUCKET_NAME: contract
-      CONTRACT_KEY_PREFIX: channel-node-participant-jb
-
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-      AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
-
-      TRUFFLE_NETWORK_ID: 15
-      TRUFFLE_BLOCKCHAIN_ENDPOINT: ws://trustbridge-ethereum-channel-ganache-cli:8585
-      # Wallet pk used to deploy a contract. Wallet will become an owner of the contract.
-      # Adress = 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0
-      TRUFFLE_WALLET_PK: "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"
-
-      # these are contract specific migration environment variables, depends on contract migration scripts
-      CHANNEL_NODE_DEPLOY_ARGS: '["JA"]'
-      CHANNEL_NODE_DEPLOY_OPTS: '{}'
-      CHANNEL_NODES_PAIRING_CONFIG: >
-        {
-          "build": {
-              "artifact": {
-                  "key": "channel-node-participant-ja/ChannelNode.json",
-                  "bucket": "contract"
-              }
-          },
-          "network": "15",
-          "participant": {
-              "our": "JB",
-              "their": "JA"
-          }
-        }
-    networks:
-      - internal
+    <<: *deployer
+    container_name: tec-deployer-participant-jb
+    env_file: deployer-participant-jb.env
 
   channel-api-ja:
-    image: trustbridge-ethereum-channel/channel-api
-    container_name: trustbridge-ethereum-channel-channel-api-ja
-    build:
-     context: '${dockerstagedir:-.}/channel-api'
-     dockerfile: docker/Dockerfile
-    volumes:
-     - '/channel-api/node_modules'
-     - '${dockerstagedir:-.}/channel-api:/channel-api'
-    environment:
-      PORT: 9090
-
-      SENDER_REF: JA
-
-      # AWS_REGION: us-east-1
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-      AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
-
-      CONTRACT_BUCKET: contract
-      CONTRACT_BUILD_ARTIFACT_KEY: channel-node-participant-ja/ChannelNode.json
-      CONTRACT_NETWORK_ID: '15'
-      CONTRACT_OWNER_PRIVATE_KEY: "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
-
-      HTTP_BLOCKCHAIN_ENDPOINT: http://trustbridge-ethereum-channel-ganache-cli:8585
-
-    networks:
-      - internal
+    <<: *channel-api
+    container_name: tec-channel-api-ja
+    env_file: channel-api-ja.env
     ports:
       - '9090:9090'
 
   channel-api-jb:
-    image: trustbridge-ethereum-channel/channel-api
-    container_name: trustbridge-ethereum-channel-channel-api-jb
-    build:
-     context: '${dockerstagedir:-.}/channel-api'
-     dockerfile: docker/Dockerfile
-    volumes:
-     - '/channel-api/node_modules'
-     - '${dockerstagedir:-.}/channel-api:/channel-api'
-    environment:
-      PORT: 9091
-
-      SENDER_REF: JB
-
-      # AWS_REGION: us-east-1
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: access
-      AWS_SECRET_ACCESS_KEY: secretaccess
-      AWS_ENDPOINT_URL: http://trustbridge-ethereum-channel-localstack:10001
-
-      CONTRACT_BUCKET: contract
-      CONTRACT_BUILD_ARTIFACT_KEY: channel-node-participant-jb/ChannelNode.json
-      CONTRACT_NETWORK_ID: '15'
-      CONTRACT_OWNER_PRIVATE_KEY: "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
-
-      HTTP_BLOCKCHAIN_ENDPOINT: http://trustbridge-ethereum-channel-ganache-cli:8585
-
-    networks:
-      - internal
+    <<: *channel-api
+    container_name: tec-channel-api-jb
+    env_file: channel-api-jb.env
     ports:
       - '9091:9091'
 
-  #
-  # websub-hub:
-  #   image: trustbridge-ethereum-channel/websub-hub
-  #   container_name: trustbridge-ethereum-channel-websub-hub
-  #   build:
-  #     context: ${dockerstagedir:-.}/websub-hub
-  #     dockerfile: docker/Dockerfile
-  #   networks:
-  #     - internal
-  #   depends_on:
-  #     - localstack
-  #   volumes:
-  #     - "${dockerstagedir:-.}/websub-hub:/websub-hub"
-  #   environment:
-  #     IGL_SUBSCRIPTIONS_REPO_USE_SSL: 'False'
-  #     IGL_SUBSCRIPTIONS_REPO_REGION: us-east-1
-  #     IGL_SUBSCRIPTIONS_REPO_HOST: trustbridge-ethereum-channel-localstack
-  #     IGL_SUBSCRIPTIONS_REPO_PORT: 10001
-  #     IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY: access
-  #     IGL_SUBSCRIPTIONS_REPO_SECRET_KEY: secretaccess
-  #
-  #     IGL_CHANNEL_REPO_HOST: trustbridge-ethereum-channel-localstack
-  #     IGL_CHANNEL_REPO_PORT: 10001
-  #     IGL_CHANNEL_REPO_REGION: us-east-1
-  #     IGL_CHANNEL_REPO_ACCESS_KEY: access
-  #     IGL_CHANNEL_REPO_SECRET_KEY: secretaccess
-  #     IGL_CHANNEL_REPO_USE_SSL: 'False'
-  #
-  #     IGL_DELIVERY_OUTBOX_REPO_HOST: trustbridge-ethereum-channel-localstack
-  #     IGL_DELIVERY_OUTBOX_REPO_PORT: 10001
-  #     IGL_DELIVERY_OUTBOX_REPO_REGION: us-east-1
-  #     IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY: access
-  #     IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY: secretaccess
-  #     IGL_DELIVERY_OUTBOX_REPO_USE_SSL: 'False'
-  #
-  #     IGL_NOTIFICATIONS_REPO_HOST: trustbridge-ethereum-channel-localstack
-  #     IGL_NOTIFICATIONS_REPO_PORT: 10001
-  #     IGL_NOTIFICATIONS_REPO_REGION: us-east-1
-  #     IGL_NOTIFICATIONS_REPO_ACCESS_KEY: access
-  #     IGL_NOTIFICATIONS_REPO_SECRET_KEY: secretaccess
-  #     IGL_NOTIFICATIONS_REPO_USE_SSL: 'False'
-  #
-  #     IGL_DELIVERY_OUTBOX_REPO_HOST: trustbridge-ethereum-channel-localstack
-  #     IGL_DELIVERY_OUTBOX_REPO_PORT: 10001
-  #     IGL_DELIVERY_OUTBOX_REPO_REGION: us-east-1
-  #     IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY: access
-  #     IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY: secretaccess
-  #     IGL_DELIVERY_OUTBOX_REPO_USE_SSL: 'False'
-  #
-  #     # these must be disabled in production envrionment
-  #     IGL_ALLOW_UNSAFE_REPO_CLEAR: 'True'
-  #     IGL_ALLOW_UNSAFE_REPO_IS_EMPTY: 'True'
-  #     TESTING: 'True'
-  #     DEBUG: 'True'
-  #     # name of the main logger
-  #     SERVICE_NAME: websub-hub
-  #     # flask server name used for websub hub url creation, required
-  #     SERVER_NAME: 0.0.0.0:8080
-  #     TOPIC_BASE_URL: http://channel-api:9090/topic/
-  #     TOPIC_HUB_PATH: /topic/
-  #     HUB_URL: http://channel-api:9090
-  #     # Used to filter messages, NewMessagesObserver should not notify about messages of other receivers, but only about ones that addressed to it.
-  #     ENDPOINT: AU
-  #
-  #     # SENTRY_DSN enables sentry logging integration
-  #     # ICL_LOG_FORMATTER_JSON enables json logging integration
+  # websub-hub-ja:
+  #   <<: *websub-hub
+  #   container_name: tec-websub-hub-ja
+  #   env_file: websub-hub-ja.env
