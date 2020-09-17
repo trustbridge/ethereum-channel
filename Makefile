@@ -36,31 +36,37 @@ shell-localstack:
 	@ docker-compose exec localstack /bin/sh
 
 
-.PHONY: shell-deployer-participant-ja
+.PHONY: shell-deployer-participant-au
 .ONESHELL:
-shell-deployer-participant-ja:
-	@ docker-compose exec deployer-participant-ja /bin/bash
+shell-deployer-participant-au:
+	@ docker-compose exec deployer-participant-au /bin/bash
 
 
-.PHONY: shell-deployer-participant-jb
+.PHONY: shell-deployer-participant-gb
 .ONESHELL:
-shell-deployer-participant-jb:
-	@ docker-compose exec deployer-participant-jb /bin/bash
+shell-deployer-participant-gb:
+	@ docker-compose exec deployer-participant-gb /bin/bash
 
 
-.PHONY: shell-channel-api-ja
+.PHONY: shell-channel-api-au
 .ONESHELL:
-shell-channel-api-ja:
-	@ docker-compose exec channel-api-ja /bin/bash
+shell-channel-api-au:
+	@ docker-compose exec channel-api-au /bin/bash
 
 
-.PHONY: shell-channel-api-jb
+.PHONY: shell-channel-api-gb
 .ONESHELL:
-shell-channel-api-jb:
-	@ docker-compose exec channel-api-jb /bin/bash
+shell-channel-api-gb:
+	@ docker-compose exec channel-api-gb /bin/bash
 
 
-.PHONY: shell-websub-hub
+.PHONY: shell-websub-hub-au
 .ONESHELL:
-shell-websub-hub:
-	@ docker-compose exec websub-hub /bin/bash
+shell-websub-hub-au:
+	@ docker-compose exec websub-hub-au /bin/bash
+
+
+.PHONY: shell-websub-hub-gb
+.ONESHELL:
+shell-websub-hub-gb:
+	@ docker-compose exec websub-hub-gb /bin/bash

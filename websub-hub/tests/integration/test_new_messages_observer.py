@@ -1,4 +1,5 @@
 from src.processors.new_messages_observer import NewMessagesObserver
+from tests import conftest
 
 
 def test(
@@ -9,7 +10,7 @@ def test(
         'id': 'transaction hash',
         'status': 'received',
         'message': {
-            'receiver': 'AU'
+            'receiver': conftest.ENDPOINT
         }
     }
     processor = NewMessagesObserver()

@@ -8,11 +8,14 @@ from src.processors.callback_delivery import CallbackDelivery
 from tests import conftest
 
 
+JURISDICTION_TOPIC = f'jurisdiction.{conftest.ENDPOINT}'
+
+
 @mock.patch('src.use_cases.requests')
 @mock.patch('src.use_cases.uuid')
 @pytest.mark.parametrize('url, subscription_topic, topic', [
-    ('/messages/subscriptions/by_jurisdiction', 'AU', 'jurisdiction.AU'),
-    ('/messages/subscriptions/by_id', 'jurisdiction.AU', 'jurisdiction.AU')
+    ('/messages/subscriptions/by_jurisdiction', conftest.ENDPOINT, JURISDICTION_TOPIC),
+    ('/messages/subscriptions/by_id', JURISDICTION_TOPIC, JURISDICTION_TOPIC)
 ])
 def test_subscriptions_by_jurisdiction(
     uuid,
@@ -56,7 +59,7 @@ def test_subscriptions_by_jurisdiction(
         'id': 'transaction hash',
         'status': 'received',
         'message': {
-            'receiver': 'AU'
+            'receiver': conftest.ENDPOINT
         }
     }
     channel_repo.post_job(message)

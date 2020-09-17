@@ -103,4 +103,13 @@ services:
   websub-hub-au:
     <<: *websub-hub
     container_name: tec-websub-hub-au
-    env_file: websub-hub-au.env
+    env_file:
+      - websub-hub.default.env
+      - websub-hub-au.env
+
+  websub-hub-gb:
+    <<: *websub-hub
+    container_name: tec-websub-hub-gb
+    env_file:
+      - websub-hub.default.env
+      - websub-hub-gb.env
