@@ -76,31 +76,31 @@ services:
         --deterministic
         --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
 
-  deployer-participant-ja:
+  deployer-participant-au:
     <<: *deployer
-    container_name: tec-deployer-participant-ja
-    env_file: deployer-participant-ja.env
+    container_name: tec-deployer-participant-au
+    env_file: deployer-participant-au.env
 
-  deployer-participant-jb:
+  deployer-participant-gb:
     <<: *deployer
-    container_name: tec-deployer-participant-jb
-    env_file: deployer-participant-jb.env
+    container_name: tec-deployer-participant-gb
+    env_file: deployer-participant-gb.env
 
-  channel-api-ja:
+  channel-api-au:
     <<: *channel-api
-    container_name: tec-channel-api-ja
-    env_file: channel-api-ja.env
+    container_name: tec-channel-api-au
+    env_file: channel-api-au.env
     ports:
       - '9090:9090'
 
-  channel-api-jb:
+  channel-api-gb:
     <<: *channel-api
-    container_name: tec-channel-api-jb
-    env_file: channel-api-jb.env
+    container_name: tec-channel-api-gb
+    env_file: channel-api-gb.env
     ports:
       - '9091:9091'
 
-  # websub-hub-ja:
-  #   <<: *websub-hub
-  #   container_name: tec-websub-hub-ja
-  #   env_file: websub-hub-ja.env
+  websub-hub-au:
+    <<: *websub-hub
+    container_name: tec-websub-hub-au
+    env_file: websub-hub-au.env
