@@ -4,9 +4,9 @@ RUN apk update && apk add bash make g++ gcc
 
 WORKDIR /worker
 
-COPY docker/stage/install/python docker/stage/install/python
+COPY requirements.txt requirements.txt
 
-RUN docker/stage/install/python/install.sh
+RUN pip install -r requirements.txt
 
 COPY ./ ./
 
