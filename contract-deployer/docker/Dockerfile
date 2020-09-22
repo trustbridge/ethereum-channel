@@ -1,4 +1,4 @@
-FROM node:10-alpine
+FROM node:14-alpine
 
 WORKDIR /deployer
 
@@ -7,12 +7,12 @@ RUN apk update && \
   mkdir contract && \
   chown -R node /deployer
 
-USER node
+USER root
 
-ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-ENV PATH=/home/node/.npm-global/bin:$PATH
+ENV NPM_CONFIG_PREFIX=/home/root/.npm-global
+ENV PATH=/home/root/.npm-global/bin:$PATH
 
-RUN npm install --global \
+RUN npm install --global --verbose \
   chai \
   mocha \
   pino \

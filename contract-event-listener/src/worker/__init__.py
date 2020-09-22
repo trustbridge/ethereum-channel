@@ -15,7 +15,7 @@ class Worker:
         self.config = config
         os.makedirs(config.Worker.General.ListenerBlocksLogDir, exist_ok=True)
         web3 = Web3(Web3.WebsocketProvider(config.Worker.Blockchain.URI))
-        contract = Contract(web3, config.Worker.Contract.Address, config.Worker.Contract.ABI)
+        contract = Contract(web3, config.Worker.Contract)
         receivers = Receiver.mapping_from_list(config.Receivers)
         self.listeners = Listener.from_config_list(
             contract,

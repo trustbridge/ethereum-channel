@@ -24,8 +24,17 @@ class Worker(Schema):
         LoggerName = fields.String(validate=validate.Length(min=1), missing="Inbound Event Listener")
 
     class __Contract(Schema):
-        ABI = fields.String(required=True, validate=validate.Length(min=1))
-        Address = fields.String(required=True, validate=validate.Length(min=1))
+        class __File(Schema):
+            ABI = fields.String(required=True, validate=validate.Length(min=1))
+            Address = fields.String(required=True, validate=validate.Length(min=1))
+
+        class __S3(Schema):
+            Bucket = fields.String(required=True, validate=validate.Length(min=1))
+            Key = fields.String(required=True, validate=validate.Length(min=1))
+            NetworkId = fields.String(required=True, validate=validate.Length(min=1))
+
+        File = fields.Nested(__File, required=False)
+        S3 = fields.Nested(__S3, required=False)
 
     Blockchain = fields.Nested(__Blockchain, required=True)
     General = fields.Nested(__General, required=True)

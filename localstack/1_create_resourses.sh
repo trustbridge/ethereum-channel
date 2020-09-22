@@ -21,3 +21,8 @@ echo "Done"
 echo "Done"
 awslocal sqs list-queues --output table
 awslocal s3api list-buckets --output table
+# unlocking services that are waiting for aws resources initialization
+if [ -d /tmp/unlock-file ]; then
+  echo "Unlock file /tmp/unlock-file/AWS created"
+  touch /tmp/unlock-file/AWS
+fi

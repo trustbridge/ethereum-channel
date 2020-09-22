@@ -12,9 +12,22 @@ class Worker:
             self.URI = config_dict['URI']
 
     class __Contract:
+        class __S3:
+            def __init__(self, config_dict):
+                self.Bucket = config_dict['Bucket']
+                self.Key = config_dict['Key']
+                self.NetworkId = config_dict['NetworkId']
+
+        class __File:
+            def __init__(self, config_dict):
+                self.ABI = config_dict['ABI']
+                self.Address = config_dict['Address']
+
         def __init__(self, config_dict):
-            self.ABI = config_dict['ABI']
-            self.Address = config_dict['Address']
+            file_config = config_dict.get('File')
+            S3_config = config_dict.get('S3')
+            self.S3 = self.__S3(S3_config) if S3_config is not None else None
+            self.File = self.__File(file_config) if file_config is not None else None
 
     class __General:
         def __init__(self, config_dict):
@@ -94,6 +107,10 @@ class Config:
     def __validate(self):
         receiver_ids = [r.Id for r in self.Receivers]
         listener_ids = [l.Id for l in self.Listeners]
+        if not (self.Worker.Contract.S3 or self.Worker.File):
+            raise ValueError('Config.Worker.Contract.S3 and Config.Worker.Contract.File are undefined')
+        elif self.Worker.Contract.S3 and self.Worker.Contract.File:
+            raise ValueError('Config.Worker.Contract.S3 and Config.Worker.Contract.File can\'t be defined together')
         if receiver_id_duplicates := [k for k, v in Counter(receiver_ids).items() if v > 1]:
             raise ValueError(f'Reciver id duplicates found {receiver_id_duplicates}')
         if listener_id_duplicates := [k for k, v in Counter(listener_ids).items() if v > 1]:

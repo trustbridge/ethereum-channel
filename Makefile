@@ -1,12 +1,10 @@
 .PHONY: run
 .ONESHELL:
 run:
-	@ docker-compose up --build --remove-orphans --renew-anon-volumes
-
-.PHONY: run-on-servers
-.ONESHELL:
-run-on-servers:
-	@ docker-compose -f docker-compose.servers.yml up --build --remove-orphans --renew-anon-volumes
+	docker-compose down -v
+	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
+	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-au.yml)"
+	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 .PHONY: stop
 .ONESHELL:
@@ -70,3 +68,15 @@ shell-websub-hub-au:
 .ONESHELL:
 shell-websub-hub-gb:
 	@ docker-compose exec websub-hub-gb /bin/bash
+
+
+.PHONY: shell-contract-event-listener-au
+.ONESHELL:
+shell-contract-event-listener-au:
+	@ docker-compose exec contract-event-listener-au /bin/bash
+
+
+.PHONY: shell-contract-event-listener-gb
+.ONESHELL:
+shell-contract-event-listener-gb:
+	@ docker-compose exec contract-event-listener-gb /bin/bash
