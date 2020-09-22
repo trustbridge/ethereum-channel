@@ -9,13 +9,13 @@ coverage==5.1
 cytoolz==0.10.1
 docutils==0.15.2
 eth-abi==2.1.1
-eth-account==0.5.2
+eth-account==0.5.3
 eth-hash==0.2.0
 eth-keyfile==0.5.1
 eth-keys==0.3.3
 eth-rlp==0.1.2
 eth-typing==2.2.1
-eth-utils==1.9.0
+eth-utils==1.9.5
 flake8==3.8.2
 hexbytes==0.2.0
 idna==2.9
@@ -50,5 +50,5 @@ toolz==0.10.0
 urllib3==1.25.9
 varint==1.0.2
 wcwidth==0.1.9
-web3==5.10.0
+web3==5.12.1
 websockets==8.1
