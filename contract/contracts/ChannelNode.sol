@@ -22,8 +22,15 @@ contract ChannelNode {
     }
 
     address public owner;
-
-    event MessageReceivedEvent(Message message);
+    // according to github issues of web3py, web3py decoder can't decode events that have structure as a parameter.
+    event MessageReceivedEvent(
+      string sender_ref,
+      string subject,
+      string predicate,
+      string object,
+      string sender,
+      string receiver
+    );
     event MessageSentEvent(string sender_ref);
 
     constructor(string[] memory _participantList) public {
@@ -63,7 +70,14 @@ contract ChannelNode {
     }
 
     function receiveMessage(Message memory message) public {
-        emit MessageReceivedEvent(message);
+        emit MessageReceivedEvent(
+          message.sender_ref,
+          message.subject,
+          message.predicate,
+          message.object,
+          message.sender,
+          message.receiver
+        );
     }
 
     function send(Message memory message) public {

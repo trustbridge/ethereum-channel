@@ -1,34 +1,42 @@
-.PHONY: run-fg
+.PHONY: run-api
 .ONESHELL:
-run-fg:
-	@ docker-compose up --build --remove-orphans
+run-api:
+	FLASK_ENV=development FLASK_APP=src.api flask run --host 0.0.0.0 --port 8080
 
 
-.PHONY: clean
+.PHONY: run-callback-delivery-processor
 .ONESHELL:
-clean:
-	@ docker-compose down --rmi all --volumes
+run-callback-delivery-processor:
+	python -m src.processors.callback_delivery
 
 
-.PHONY: run
+.PHONY: run-callback-spreader-processor
 .ONESHELL:
-run:
-	@ docker-compose up --build --remove-orphans -d
+run-callback-spreader-processor:
+	python -m src.processors.callback_spreader
 
 
-.PHONY: build
+.PHONY: run-new-messages-observer-processor
 .ONESHELL:
-build:
-	@ docker-compose build --no-cache
+run-new-messages-observer-processor:
+	python -m src.processors.new_messages_observer
 
 
-.PHONY: shell-localstack
+.PHONY: test
 .ONESHELL:
-shell-localstack:
-	@ docker-compose exec localstack /bin/sh
+test:
+	pytest tests -vv -x -c pytest.ini
 
 
-.PHONY: shell-websub-hub
+.PHONY: coverage
 .ONESHELL:
-shell-websub-hub:
-	@ docker-compose exec websub-hub /bin/bash
+coverage:
+	coverage run -m tests
+	coverage report -m
+	coverage html
+
+
+.PHONY: lint
+.ONESHELL:
+lint:
+	flake8 --exit-zero --config=.flake8 src tests
