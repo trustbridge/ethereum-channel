@@ -1,4 +1,5 @@
 import os
+import json
 from web3 import Web3
 from src.loggers import logging
 
@@ -63,7 +64,7 @@ class Listener:
                 continue
             # start new filter from the next block
             new_from_block = event.blockNumber + 1
-            message = Web3.toJSON(event)
+            message = json.loads(Web3.toJSON(event))
             event_count += 1
             for receiver in self.__receivers:
                 receiver.send(message)

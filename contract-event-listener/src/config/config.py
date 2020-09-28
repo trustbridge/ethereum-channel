@@ -57,6 +57,7 @@ class Listener:
 class Receiver:
     def __init__(self, config_dict):
         self.Id = config_dict['Id']
+        self.JSON = config_dict['JSON']
 
 
 class LogReceiver(Receiver):
@@ -66,13 +67,13 @@ class LogReceiver(Receiver):
 class SQSReceiver(Receiver):
     class __Config:
         def __init__(self, config_dict):
-            self.Message = config_dict['Message']
-            self.AWS = config_dict['AWS']
+            self.Message = config_dict.get('Message', {})
+            self.AWS = config_dict.get('AWS', {})
 
     def __init__(self, config_dict):
         super().__init__(config_dict)
         self.QueueUrl = config_dict['QueueUrl']
-        self.Config = self.__Config(config_dict['Config'])
+        self.Config = self.__Config(config_dict.get('Config', {}))
 
 
 class Config:

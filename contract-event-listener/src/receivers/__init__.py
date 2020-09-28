@@ -1,6 +1,8 @@
-import boto3
+import json
+from src import aws
 from src import config
 from src.loggers import logging
+from src.utils.jmespath_json_template import JMESPathJSONTemplate
 
 
 class Receiver:
@@ -18,15 +20,27 @@ class Receiver:
             mapping[config_obj.Id] = Receiver.from_config(config_obj)
         return mapping
 
+    def __init__(self, config):
+        self.config = config
+        self.jmespath_json_template = JMESPathJSONTemplate(self.config.JSON) if self.config.JSON else None
+
+    def process_message_data(self, message):
+        if self.jmespath_json_template:
+            message = self.jmespath_json_template.render(message)
+        return message
+
+    def send(self, message):
+        self.send_message(self.process_message_data(message))
+
 
 class SQSReceiver(Receiver):
     def __init__(self, config_obj):
-        self.config = config_obj
+        super().__init__(config_obj)
         self.__logger = logging.getLogger(self.config.Id)
-        self.__queue = boto3.resource('sqs', **config_obj.Config.AWS).Queue(config_obj.QueueUrl)
+        self.__queue = aws.sqs(config_obj.Config.AWS).Queue(config_obj.QueueUrl)
 
-    def send(self, message):
-        kwargs = {**self.config.Config.Message, 'MessageBody': message}
+    def send_message(self, message):
+        kwargs = {**self.config.Config.Message, 'MessageBody': json.dumps(message)}
         self.__logger.debug('Sending the message to %s', self.config.QueueUrl)
         self.__logger.debug(message)
         self.__queue.send_message(**kwargs)
@@ -35,8 +49,8 @@ class SQSReceiver(Receiver):
 
 class LogReceiver(Receiver):
     def __init__(self, config_obj):
-        self.config = config_obj
+        super().__init__(config_obj)
         self.__logger = logging.getLogger(self.config.Id)
 
-    def send(self, message):
+    def send_message(self, message):
         self.__logger.info(message)

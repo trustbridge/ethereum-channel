@@ -50,19 +50,30 @@ class Listener(Schema):
     Receivers = fields.List(fields.String(), validate=validate.Length(min=1))
 
 
-class LogReceiver(Schema):
+def _validate_JSON_field(value):
+    if value is not None and not isinstance(value, (dict, list, str)):
+        raise ValidationError(f'Type of JSON field must be [list, dict, str] not {type(value)}')
+
+
+class Receiver(Schema):
+
     Id = fields.String(required=True, validate=validate.Length(min=1))
+    JSON = fields.Raw(required=False, missing=None, validate=_validate_JSON_field)
+
+
+class LogReceiver(Receiver):
     Type = fields.String(required=True, validate=validate.Equal('LOG'))
 
 
-class SQSReceiver(Schema):
+class SQSReceiver(Receiver):
     class __Config(Schema):
-        AWS = fields.Dict(required=True)
+        AWS = fields.Dict(missing={})
         Message = fields.Dict(missing={})
-    Id = fields.String(required=True, validate=validate.Length(min=1))
+
     Type = fields.String(required=True, validate=validate.Equal('SQS'))
+
     QueueUrl = fields.String(required=True)
-    Config = fields.Nested(__Config, required=True)
+    Config = fields.Nested(__Config, missing={})
 
 
 class Config(Schema):

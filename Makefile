@@ -6,6 +6,16 @@ run:
 	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
 	docker-compose up --build --remove-orphans --renew-anon-volumes
 
+
+.PHONY: run-dev
+.ONESHELL:
+run-dev:
+	docker-compose down -v
+	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
+	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
+	docker-compose -f docker-compose.dev.yml up --build --remove-orphans --renew-anon-volumes
+
+
 .PHONY: stop
 .ONESHELL:
 stop:
