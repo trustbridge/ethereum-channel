@@ -3,7 +3,7 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 function getEnv(name, defaultValue){
   const value = process.env[name] || defaultValue;
   if(value === undefined){
-    throw Error('Missing "%s" environment variable');
+    throw Error(`Missing "${name}" environment variable`);
   }
   return value;
 }

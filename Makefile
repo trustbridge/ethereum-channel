@@ -1,20 +1,20 @@
 .PHONY: run
 .ONESHELL:
 run:
-	docker-compose down -v
 	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
 	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
+	cat docker-compose.base.yml docker-compose.system.yml > docker-compose.yml
+	docker-compose down -v
 	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 
-.PHONY: run-dev
+.PHONY: run-contract-event-listener
 .ONESHELL:
-run-dev:
+run-contract-event-listener:
+	export YAML_CONFIG_FILE_VALUE="$$(cat contract-event-listener-dev.yml)"
+	cat docker-compose.base.yml docker-compose.contract-event-listener.yml > docker-compose.yml
 	docker-compose down -v
-	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
-	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
-	docker-compose -f docker-compose.dev.yml up --build --remove-orphans --renew-anon-volumes
-
+	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 .PHONY: stop
 .ONESHELL:
@@ -90,3 +90,13 @@ shell-contract-event-listener-au:
 .ONESHELL:
 shell-contract-event-listener-gb:
 	@ docker-compose exec contract-event-listener-gb /bin/bash
+
+.PHONY: shell-contract-event-listener-contract
+.ONESHELL:
+shell-contract-event-listener-contract:
+	@ docker-compose exec contract-event-listener-contract /bin/bash
+
+.PHONY: shell-contract-event-listener
+.ONESHELL:
+shell-contract-event-listener:
+	@ docker-compose exec contract-event-listener /bin/bash

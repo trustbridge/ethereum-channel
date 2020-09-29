@@ -81,8 +81,7 @@ x-services:
       - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
       - 'unlock:/tmp/unlock-file'
 
-services:
-  localstack:
+  localstack: &localstack
     image: localstack/localstack
     container_name: tec-localstack
     env_file: localstack.env
@@ -93,7 +92,7 @@ services:
       - 'unlock:/tmp/unlock-file'
       - '/var/run/docker.sock:/var/run/docker.sock'
 
-  ganache-cli:
+  ganache-cli: &ganache
     image: trufflesuite/ganache-cli
     container_name: tec-ganache-cli
     networks:
@@ -109,43 +108,3 @@ services:
         --accounts 5
         --deterministic
         --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
-
-  deployer-participant-au:
-    <<: *deployer
-    container_name: tec-deployer-participant-au
-    env_file:
-      - aws-credentials.env
-      - deployer-participant-au.env
-    command: -c
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  channel-api-au:
-    <<: *channel-api
-    container_name: tec-channel-api-au
-    env_file:
-      - aws-credentials.env
-      - channel-api-au.env
-    ports:
-      - '9090:9090'
-    command: container
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
-
-  contract-event-listener-au:
-    <<: *contract-event-listener
-    container_name: tec-contract-event-listener-au
-    command: container
-    environment:
-      YAML_CONFIG_FILE_VALUE: ${YAML_CONFIG_FILE_VALUE_AU}
-      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
-
-  websub-hub-au:
-    <<: *websub-hub
-    container_name: tec-websub-hub-au
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    command: container
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS

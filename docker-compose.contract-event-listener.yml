@@ -1,0 +1,29 @@
+services:
+  localstack:
+    <<: *localstack
+
+  ganache:
+    <<: *ganache
+
+  contract-event-listener-contract:
+    <<: *deployer
+    container_name: tec-contract-event-listener-contract
+    command: -d
+    env_file:
+      - aws-credentials.env
+      - deployer-event-emitter.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS
+    volumes:
+      - '${dockerstagedir:-.}/contract-deployer:/deployer'
+      - '${dockerstagedir:-.}/contract-event-listener/contract:/tmp/contract'
+      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
+      - 'unlock:/tmp/unlock-file'
+
+  contract-event-listener:
+    <<: *contract-event-listener
+    container_name: tec-contract-event-listener
+    command: container
+    environment:
+      YAML_CONFIG_FILE_VALUE: ${YAML_CONFIG_FILE_VALUE}
+      REQUIRED_UNLOCK_FILES: AWS event-emitter
