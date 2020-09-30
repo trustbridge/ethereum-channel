@@ -1,4 +1,4 @@
-from .config import (  # noqa
+from .schema import (  # noqa
     Config,
     SQSReceiver,
     LogReceiver,

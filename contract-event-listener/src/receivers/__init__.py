@@ -8,9 +8,9 @@ from src.utils.jmespath_json_template import JMESPathJSONTemplate
 class Receiver:
     @staticmethod
     def from_config(config_obj):
-        if isinstance(config_obj, config.SQSReceiver):
+        if config_obj.Type == config.Receiver.Type.SQS:
             return SQSReceiver(config_obj)
-        elif isinstance(config_obj, config.LogReceiver):
+        elif config_obj.Type == config.Receiver.Type.LOG:
             return LogReceiver(config_obj)
 
     @staticmethod
