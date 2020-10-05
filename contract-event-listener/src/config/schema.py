@@ -4,7 +4,6 @@ from collections import Counter, namedtuple
 import yaml
 from marshmallow import Schema, fields, validate, ValidationError, post_load, validates_schema
 from marshmallow.fields import Nested
-# from .config import Config as ConfigObject
 
 
 class ConfigSchema(Schema):

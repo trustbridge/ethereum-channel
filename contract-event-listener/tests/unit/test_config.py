@@ -1,6 +1,6 @@
 import pytest
 from marshmallow import ValidationError
-from src.config import Config, LogReceiver, SQSReceiver
+from src.config import Config
 
 
 def test():
