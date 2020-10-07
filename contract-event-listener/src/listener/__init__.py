@@ -22,7 +22,7 @@ class Listener:
     def __update_from_block(self, value):
         with open(self.__from_block_filename, 'wt+') as f:
             f.write(str(value))
-        self.__logger.debug('from block updated=%s', self.__from_block)
+        self.__logger.debug('from block updated=%s', value)
 
     def __update_filter(self):
         config = self.__config
@@ -49,7 +49,6 @@ class Listener:
         self.__update_filter()
 
     def poll(self):
-
         new_from_block = self.__from_block
         event_received = False
         event_count = 0

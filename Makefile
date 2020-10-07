@@ -11,7 +11,6 @@ run:
 .PHONY: run-contract-event-listener
 .ONESHELL:
 run-contract-event-listener:
-	export YAML_CONFIG_FILE_VALUE="$$(cat contract-event-listener-dev.yml)"
 	cat docker-compose.base.yml docker-compose.contract-event-listener.yml > docker-compose.yml
 	docker-compose down -v
 	docker-compose up --build --remove-orphans --renew-anon-volumes

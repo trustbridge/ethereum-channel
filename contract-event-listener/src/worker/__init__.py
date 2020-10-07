@@ -4,14 +4,12 @@ from web3 import Web3
 from src.contract import Contract
 from src.receivers import Receiver
 from src.listener import Listener
-from src.config import Config
 from src.loggers import logging
 
 
 class Worker:
 
-    def __init__(self):
-        config = Config.from_file(os.environ['CONFIG_FILE'])
+    def __init__(self, config):
         self.config = config
         os.makedirs(config.Worker.General.ListenerBlocksLogDir, exist_ok=True)
         web3 = Web3(Web3.WebsocketProvider(config.Worker.Blockchain.URI))
