@@ -5,7 +5,7 @@ set -euo pipefail
 case "${1,,}" in
   server)
     cd /channel-api
-    python3 -m channel_api
+    python3 -m src.api
     ;;
   container)
     echo "Container started"

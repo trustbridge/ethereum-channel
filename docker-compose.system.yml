@@ -2,6 +2,9 @@ services:
   localstack:
     <<: *localstack
 
+  ganache:
+    <<: *ganache
+
   deployer-participant-au:
     <<: *deployer
     container_name: tec-deployer-participant-au
@@ -10,26 +13,15 @@ services:
       - deployer-participant-au.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS
-  ganache:
-    <<: *ganache
 
   deployer-participant-gb:
-  contract-event-listener-contract:
     <<: *deployer
     container_name: tec-deployer-participant-gb
-    container_name: tec-contract-event-listener-contract
-    command: -c
     env_file:
       - aws-credentials.env
       - deployer-participant-gb.env
-      - deployer-event-emitter.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS
-    volumes:
-      - '${dockerstagedir:-.}/contract-deployer:/deployer'
-      - '${dockerstagedir:-.}/contract-event-listener/contract:/tmp/contract'
-      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
-      - 'unlock:/tmp/unlock-file'
 
   channel-api-au:
     <<: *channel-api

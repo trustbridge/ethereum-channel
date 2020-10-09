@@ -7,6 +7,7 @@ class Config(BaseModel):
     confirmation_threshold: int
     contract_owner_private_key: str
     sender_ref: str
+    sender: str
 
 
 class MessageStatus(str, Enum):

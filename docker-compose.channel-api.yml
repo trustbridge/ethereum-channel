@@ -1,0 +1,36 @@
+services:
+  localstack:
+    <<: *localstack
+
+  ganache:
+    <<: *ganache
+
+  deployer-participant-au:
+    <<: *deployer
+    container_name: tec-deployer-participant-au
+    env_file:
+      - aws-credentials.env
+      - deployer-participant-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS
+
+  deployer-participant-gb:
+    <<: *deployer
+    container_name: tec-deployer-participant-gb
+    env_file:
+      - aws-credentials.env
+      - deployer-participant-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS
+
+  channel-api:
+    <<: *channel-api
+    container_name: tec-channel-api
+    command: container
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    ports:
+      - '9090:9090'
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au channel-node-participant-gb

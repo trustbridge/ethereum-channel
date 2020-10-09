@@ -1,25 +1,20 @@
-from .lib import (
-    get_config,
-    get_contract,
-    get_w3,
-    transaction_status
-)
+from . import utils
+from . import dependencies as deps
 from .models import (
     Config,
     EthereumClient,
     MessageRequest,
     MessageResponse,
     MessageStatus,
-    Transaction,
-    TransactionReceipt)
+)
 from fastapi import Depends, FastAPI, Response, HTTPException, status
 from libtrustbridge.websub.domain import Pattern
-import json
 
 
 app = FastAPI()
 
 
+# websub methods
 @app.get('/topic/{topic}', status_code=status.HTTP_200_OK)
 def get_topic(topic):
     try:
@@ -29,23 +24,34 @@ def get_topic(topic):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-@app.get("/participants")
-def get_participants(contract: object = Depends(get_contract)):
+@app.post('/messages/subscriptions/by_id')
+def subscriptions_by_id():
+    pass
 
+
+@app.post('/messages/subscriptions/by_jurisdiction')
+def subscriptions_by_jurisdiction():
+    pass
+
+
+# channel api methods
+@app.get("/participants")
+def get_participants(contract: object = Depends(deps.get_contract)):
     participants = contract.functions.getParticipants().call()
     return participants
 
 
 @app.get("/messages/{id}", response_model=MessageResponse)
-def get_message(id: str,
-                w3: EthereumClient = Depends(get_w3),
-                config: Config = Depends(get_config),
-                contract: object = Depends(get_contract)
-                ) -> MessageResponse:
+def get_message(
+    id: str,
+    w3: EthereumClient = Depends(deps.get_w3),
+    config: Config = Depends(deps.get_config),
+    contract: object = Depends(deps.get_contract)
+) -> MessageResponse:
     txn = w3.eth.getTransaction(id)
     txn_receipt = w3.eth.getTransactionReceipt(id)
     current_block = w3.eth.blockNumber
-    status = transaction_status(txn_receipt, current_block, config.confirmation_threshold)
+    status = utils.transaction_status(txn_receipt, current_block, config.confirmation_threshold)
     txn_payload = contract.decode_function_input(txn.input)[1]['message']
 
     message_payload = MessageRequest(
@@ -64,18 +70,20 @@ def get_message(id: str,
 
 
 @app.post("/messages", response_model=MessageResponse)
-async def create_message(message: MessageRequest,
-                         response: Response,
-                         w3: EthereumClient = Depends(get_w3),
-                         config: Config = Depends(get_config),
-                         contract: object = Depends(get_contract)):
+async def create_message(
+    message: MessageRequest,
+    response: Response,
+    w3: EthereumClient = Depends(deps.get_w3),
+    config: Config = Depends(deps.get_config),
+    contract: object = Depends(deps.get_contract)
+) -> MessageResponse:
 
     msg = {
         "subject": message.subject,
         "predicate": message.predicate,
         "object": message.obj,
-        "sender": message.sender,
         "receiver": message.receiver,
+        "sender": config.sender,
         "sender_ref": config.sender_ref
     }
 
@@ -83,24 +91,22 @@ async def create_message(message: MessageRequest,
     nonce = w3.eth.getTransactionCount(account.address)
 
     # gas price and gas amount should be determined automatically using ethereum node API
-    txn = contract.functions.send(msg).buildTransaction({
-        'nonce': nonce
-    })
+    txn = contract.functions.send(msg).buildTransaction({'nonce': nonce})
     signed_txn = w3.eth.account.sign_transaction(txn, private_key=config.contract_owner_private_key)
     tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-    # sqs.send_message(
-    #     QueueUrl=os.environ['OUTBOUND_MESSAGE_QUEUE_URL'], MessageBody=tx_hash.hex())
 
     message_payload = MessageRequest(
         subject=message.subject,
         predicate=message.predicate,
         obj=message.obj,
         sender=message.sender,
-        receiver=message.receiver)
+        receiver=message.receiver
+    )
 
     response_message = MessageResponse(
         id=tx_hash.hex(),
         status=MessageStatus.RECEIVED,
-        message=message_payload)
+        message=message_payload
+    )
 
     return response_message

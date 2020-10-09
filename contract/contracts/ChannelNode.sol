@@ -84,6 +84,6 @@ contract ChannelNode {
         participants[message.receiver].participantContract.receiveMessage(
             message
         );
-        emit MessageSentEvent(message.sender_ref);
+        emit MessageSentEvent(message.sender);
     }
 }
