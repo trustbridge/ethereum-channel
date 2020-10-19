@@ -1,9 +1,13 @@
+from http import HTTPStatus
 from libtrustbridge.utils.routing import mimetype
 from flask import Blueprint, request, current_app as app, jsonify
+from . import utils
 from .use_cases import (
     GetParticipantsUseCase,
     GetMessageUseCase,
-    SendMessageUseCase
+    SendMessageUseCase,
+    GetTopicUseCase,
+    SubscriptionActionUseCase
 )
 
 
@@ -16,18 +20,18 @@ def post_messages():
     result = SendMessageUseCase(
         app.web3,
         app.contract,
-        app.config['CONTRACT_OWNER_PRIVATE_KEY']
+        app.config.CONTRACT_OWNER_PRIVATE_KEY
     ).execute(
         request.json,
-        app.config['SENDER'],
-        app.config['SENDER_REF']
+        app.config.SENDER,
+        app.config.SENDER_REF
     )
     return jsonify(result)
 
 
 @blueprint.route('/messages/<id>', methods=['GET'])
 def get_messages(id):
-    return jsonify(GetMessageUseCase(app.web3, app.contract, app.config['MESSAGE_CONFIRMATION_THRESHOLD']).execute(id))
+    return jsonify(GetMessageUseCase(app.web3, app.contract, app.config.MESSAGE_CONFIRMATION_THRESHOLD).execute(id))
 
 
 @blueprint.route('/participants', methods=['GET'])
@@ -35,16 +39,24 @@ def get_participants():
     return jsonify(GetParticipantsUseCase(app.contract).execute())
 
 
-@blueprint.route('/topic/<topic>', methods=['GET'])
+TOPIC_BASE_URL = 'topic'
+
+
+@blueprint.route(f'/{TOPIC_BASE_URL}/<topic>', methods=['GET'])
 def get_topic(topic):
-    return topic
-
-
-@blueprint.route('/messages/subscriptions/by_jurisdiction', methods=['POST'])
-def subscriptions_by_jurisdiction():
-    return "by_jurisdiction"
+    return jsonify(GetTopicUseCase().execute(topic))
 
 
 @blueprint.route('/messages/subscriptions/by_id', methods=['POST'])
-def subscriptions_by_id():
-    return "by_id"
+@blueprint.route('/messages/subscriptions/by_jurisdiction', methods=['POST'])
+@mimetype(include=['application/x-www-form-urlencoded'])
+@utils.form
+def subscriptions(form_data):
+    topic_prefix = ''
+    if request.url.endswith('by_jurisdiction'):
+        topic_prefix = app.config.SENDER
+    SubscriptionActionUseCase(
+        subscriptions_repo=app.repos.subscriptions,
+        topic_base_url=app.config.TOPIC_BASE_URL
+    ).execute(form_data, topic_prefix)
+    return ('', HTTPStatus.OK)

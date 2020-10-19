@@ -5,9 +5,10 @@ from libtrustbridge.utils.conf import env_s3_config, env, env_bool
 def Config():
     environment_config = dict(
         SUBSCRIPTIONS_REPO=env_s3_config('SUBSCRIPTIONS_REPO'),
-
+        # logger name
         SERVICE_NAME=env('SERVICE_NAME', default='ethereum-channel-websub-hub'),
-        SERVER_NAME=env('SERVER_NAME', default='0.0.0.0:8080'),
+        # api base url, ex: https://test.api.com
+        SERVICE_URL=env('SERVICE_URL'),
 
         TESTING=env_bool('TESTING', default=False),
         DEBUG=env_bool('DEBUG', default=False),
@@ -23,5 +24,6 @@ def Config():
 
         SENDER=env('SENDER', default='AU'),
         SENDER_REF=env('SENDER_REF', default='')
+
     )
     return Box(environment_config)

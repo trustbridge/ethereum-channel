@@ -133,9 +133,9 @@ services:
     environment:
       REQUIRED_UNLOCK_FILES: AWS
 
-  channel-api:
+  channel-api-au:
     <<: *channel-api
-    container_name: tec-channel-api
+    container_name: tec-channel-api-au
     command: container
     env_file:
       - channel-api.default.env

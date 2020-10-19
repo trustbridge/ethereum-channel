@@ -1,11 +1,16 @@
-from .config import Config
+from box import Box
+from libtrustbridge.websub.repos import SubscriptionsRepo
 from libtrustbridge.repos.elasticmqrepo import ElasticMQRepo
 from libtrustbridge.repos.miniorepo import MinioRepo
 
 
-def Channel() -> ElasticMQRepo:
-    return ElasticMQRepo(Config().CHANNEL_REPO)
+def Channel(config: Box = None) -> ElasticMQRepo:
+    return ElasticMQRepo(config)
 
 
-def Contract() -> MinioRepo:
-    return MinioRepo(Config().CONTRACT_REPO)
+def Contract(config: Box = None) -> MinioRepo:
+    return MinioRepo(config)
+
+
+def Subscriptions(config: Box = None) -> SubscriptionsRepo:
+    return SubscriptionsRepo(config)
