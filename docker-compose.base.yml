@@ -29,6 +29,25 @@ x-services:
     depends_on:
       - localstack
 
+  channel-api-callback-server: &channel-api-callback-server
+    image: tec/channel-api
+    container_name: tec-channel-api-callback-server
+    build:
+     context: '${dockerstagedir:-.}/channel-api'
+     dockerfile: docker/Dockerfile
+    entrypoint: ["/entrypoint-wrapper.sh", "/channel-api/docker/entrypoint.sh"]
+    command: callback-server
+    volumes:
+     - '${dockerstagedir:-.}/channel-api:/channel-api'
+     - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
+     - 'unlock:/tmp/unlock-file'
+    environment:
+      PORT: '11001'
+    networks:
+      - internal
+    ports:
+      - '11001:11001'
+
   channel-api: &channel-api
     image: tec/channel-api
     container_name: tec-channel-api
@@ -38,7 +57,6 @@ x-services:
     entrypoint: ["/entrypoint-wrapper.sh", "/channel-api/docker/entrypoint.sh"]
     command: server
     volumes:
-     - '/channel-api/node_modules'
      - '${dockerstagedir:-.}/channel-api:/channel-api'
      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
      - 'unlock:/tmp/unlock-file'

@@ -3,7 +3,7 @@ from box import Box
 from flask import Flask
 from web3 import Web3
 from libtrustbridge.errors import handlers as error_handlers
-from . import repos
+from src import repos
 from . import views as api
 from .contract import Contract
 

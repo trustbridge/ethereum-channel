@@ -1,6 +1,7 @@
 import uuid
 from http import HTTPStatus
 import urllib
+from web3.exceptions import TransactionNotFound
 from box import Box
 import requests
 from libtrustbridge.websub.domain import Pattern
@@ -39,7 +40,7 @@ class SendMessageUseCase:
         self.MessageSchema().load(message)
         message = {**message, 'sender': sender, 'sender_ref': sender_ref}
 
-        account = self.web3.eth.account.privateKeyToAccount(self.contract_owner_private_key)
+        account = self.web3.eth.account.from_key(self.contract_owner_private_key)
         nonce = self.web3.eth.getTransactionCount(account.address)
 
         # gas price and gas amount should be determined automatically using ethereum node API
@@ -60,7 +61,10 @@ class GetMessageUseCase:
         self.confirmation_threshold = confirmation_threshold
 
     def execute(self, id):
-        tx = self.web3.eth.getTransaction(id)
+        try:
+            tx = self.web3.eth.getTransaction(id)
+        except TransactionNotFound:
+            raise NotFoundError(detail=f'Message {{id:"{id}"}} not found')
         tx_receipt = self.web3.eth.getTransactionReceipt(id)
         current_block = self.web3.eth.blockNumber
         if tx_receipt.status is False:

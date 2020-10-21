@@ -23,10 +23,13 @@ services:
     environment:
       REQUIRED_UNLOCK_FILES: AWS
 
+  channel-api-callback-server:
+    <<: *channel-api-callback-server
+
   channel-api-au:
     <<: *channel-api
     container_name: tec-channel-api-au
-    command: container
+    command: server
     env_file:
       - channel-api.default.env
       - channel-api-au.env
