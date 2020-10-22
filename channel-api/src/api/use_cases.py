@@ -30,23 +30,27 @@ class SendMessageUseCase:
         object = fields.String(required=True)
         receiver = fields.String(required=True)
 
-    def __init__(self, web3, contract, contract_owner_private_key):
+    def __init__(self, web3=None, contract=None, contract_owner_private_key=None):
         self.web3 = web3
         self.contract = contract
         self.contract_owner_private_key = contract_owner_private_key
 
     def execute(self, message, sender, sender_ref):
         # validating message structure
-        self.MessageSchema().load(message)
+        try:
+            self.MessageSchema().load(message)
+        except MarshmallowValidationError as e:
+            raise BadParametersError(detail=str(e)) from e
+
         message = {**message, 'sender': sender, 'sender_ref': sender_ref}
 
         account = self.web3.eth.account.from_key(self.contract_owner_private_key)
         nonce = self.web3.eth.getTransactionCount(account.address)
 
         # gas price and gas amount should be determined automatically using ethereum node API
-        txn = self.contract.functions.send(message).buildTransaction({'nonce': nonce})
-        signed_txn = self.web3.eth.account.sign_transaction(txn, private_key=self.contract_owner_private_key)
-        tx_hash = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        tx = self.contract.functions.send(message).buildTransaction({'nonce': nonce})
+        signed_tx = self.web3.eth.account.sign_transaction(tx, private_key=self.contract_owner_private_key)
+        tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
         return dict(
             id=tx_hash.hex(),
             status=self.MessageStatus.RECEIVED,
@@ -55,12 +59,12 @@ class SendMessageUseCase:
 
 
 class GetMessageUseCase:
-    def __init__(self, web3, contract, confirmation_threshold):
+    def __init__(self, web3=None, contract=None, confirmation_threshold=None):
         self.web3 = web3
         self.contract = contract
         self.confirmation_threshold = confirmation_threshold
 
-    def execute(self, id):
+    def execute(self, id=None):
         try:
             tx = self.web3.eth.getTransaction(id)
         except TransactionNotFound:
@@ -109,6 +113,11 @@ class GetTopicUseCase:
             raise NotFoundError(detail='topic does not exist') from e
 
 
+class UnexpectedTopicURLResponseError(UseCaseError):
+    generic_http_error = True
+    status_code = HTTPStatus.BAD_REQUEST
+
+
 class CanonicalURLTopicVerificationUseCase:
     def __init__(self, topic_base_url=None):
         self.topic_base_url = topic_base_url if topic_base_url.endswith('/') else f'{topic_base_url}/'
@@ -144,12 +153,21 @@ class CanonicalURLTopicVerificationUseCase:
                     )
             elif response.status_code == HTTPStatus.NOT_FOUND:
                 raise NotFoundError(detail=f'Topic "{topic}" does not exist')
-            elif response.status_code < HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise UseCaseError(generic_http_error=True, status=response.status_code, )
+            else:
+                raise UnexpectedTopicURLResponseError(
+                    detail='Unexpeced response code {} from {}'.format(
+                        response.status_code,
+                        topic_canonical_url
+                    )
+                )
         else:
             if topic_prefix:
                 topic = f'{topic_prefix}.{topic}'
-            return topic
+            try:
+                Pattern(topic)._validate()
+                return topic
+            except ValueError as e:
+                raise BadParametersError(detail=f'"{topic}" is invalid topic string') from e
 
 
 class SubscriptionCallbackVerificationUseCase:

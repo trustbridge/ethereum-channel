@@ -68,7 +68,7 @@ class NewMessagesNotifyUseCase:
         # filtering messages based on the receiver property
         # if we're not the receiver we must skip a message
         if message['message']['receiver'] != self.receiver:
-            return
+            return False
         PublishNewMessageUseCase(self.notifications_repo).publish(message)
         self.channel_repo.delete(queue_msg_id)
         return True
@@ -99,9 +99,9 @@ class DispatchMessageToSubscribersUseCase:
 
     def __init__(
         self,
-        notifications_repo: repos.Notifications,
-        delivery_outbox_repo: repos.DeliveryOutbox,
-        subscriptions_repo: repos.Subscriptions
+        notifications_repo: repos.Notifications = None,
+        delivery_outbox_repo: repos.DeliveryOutbox = None,
+        subscriptions_repo: repos.Subscriptions = None
     ):
         self.notifications = notifications_repo
         self.delivery_outbox = delivery_outbox_repo
@@ -110,7 +110,7 @@ class DispatchMessageToSubscribersUseCase:
     def execute(self):
         job = self.notifications.get_job()
         if not job:
-            return
+            return False
         return self.process(*job)
 
     def process(self, msg_id, payload):
@@ -155,15 +155,20 @@ class DeliverCallbackUseCase:
     MAX_RETRY_TIME = 90
     MAX_ATTEMPTS = 3
 
-    def __init__(self, delivery_outbox_repo: repos.DeliveryOutboxRepo, hub_url: str, topic_self_link_base: str):
-        topic_self_link_base = (
-            topic_self_link_base
-            if topic_self_link_base.endswith('/')
-            else topic_self_link_base + '/'
+    def __init__(
+        self,
+        delivery_outbox_repo: repos.DeliveryOutboxRepo = None,
+        channel_url: str = None,
+        topic_base_self_url: str = None
+    ):
+        topic_base_self_url = (
+            topic_base_self_url
+            if topic_base_self_url.endswith('/')
+            else topic_base_self_url + '/'
         )
-        self.topic_self_link_base = topic_self_link_base
+        self.topic_base_self_url = topic_base_self_url
         self.delivery_outbox = delivery_outbox_repo
-        self.hub_url = hub_url
+        self.channel_url = channel_url
 
     def execute(self):
         self._last_retry_time = 0
@@ -206,16 +211,16 @@ class DeliverCallbackUseCase:
         """
 
         logger.info("Sending WebSub payload \n    %s to callback URL \n    %s", payload, url)
-        topic_self_link = urllib.parse.urljoin(self.topic_self_link_base, topic)
+        topic_self_url = urllib.parse.urljoin(self.topic_base_self_url, topic)
         header = {
-            'Link': f'<{self.hub_url}>; rel="hub", <{topic_self_link}>; rel="self"'
+            'Link': f'<{self.channel_url}>; rel="hub", <{topic_self_url}>; rel="self"'
         }
         try:
             resp = requests.post(url, json=payload, headers=header)
-            if str(resp.status_code).startswith('2'):
+            if 200 <= resp.status_code < 300:
                 return
-        except ConnectionError:
-            raise InvalidCallbackResponse("Connection error, url: %s", url)
+        except requests.exceptions.RequestException as e:
+            raise InvalidCallbackResponse("Connection error, url: %s", url) from e
 
         raise InvalidCallbackResponse("Subscription url %s seems to be invalid, returns %s", url, resp.status_code)
 

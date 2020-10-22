@@ -13,9 +13,9 @@ def test(delivery_outbox_repo, callback_server):
     # preparing topic and expected topic self link
     topic = 'jurisdiction.AU'
     topic_self_link_base = (
-        config.TOPIC_SELF_LINK_BASE
-        if config.TOPIC_SELF_LINK_BASE.endswith('/')
-        else config.TOPIC_SELF_LINK_BASE + '/'
+        config.TOPIC_BASE_SELF_URL
+        if config.TOPIC_BASE_SELF_URL.endswith('/')
+        else config.TOPIC_BASE_SELF_URL + '/'
     )
     expected_topic_self_link = urllib.parse.urljoin(topic_self_link_base, topic)
     assert expected_topic_self_link == '/topic/jurisdiction.AU'
@@ -37,6 +37,9 @@ def test(delivery_outbox_repo, callback_server):
         callback_server.valid_callback_url(2),
         callback_server.invalid_callback_url(3)
     ]
+    # empty delivery_outbox_repo, processor must do nothing
+    next(processor)
+    assert not callback_server.get_callback_records()
 
     # the delivery outbox repo contains two jobs, must send jobs paylod to specified subscribers
     for url in subscribers:
@@ -50,7 +53,7 @@ def test(delivery_outbox_repo, callback_server):
         assert callback_record['status_code'] == HTTPStatus.OK
         assert callback_record['headers']['Link'] == expected_request_header['Link']
     callback_server.clean_callback_records()
-    processor.use_case.MAX_RETRY_TIME = 1
+    processor.use_case.MAX_RETRY_TIME = 5
     for i in range(DeliverCallbackUseCase.MAX_ATTEMPTS):
         next(processor)
         time.sleep(processor.use_case._last_retry_time)

@@ -76,12 +76,13 @@ def test_get_topic(client):
     'url,topic,pattern',
     [
         ['/messages/subscriptions/by_id', 'a.b.c', 'a.b.c'],
-        ['/messages/subscriptions/by_id', 'TOPIC_BASE_URLa.b.c', 'a.b.c'],
-        ['/messages/subscriptions/by_jurisdiction', 'a.b.c', 'jurisdiction.a.b.c'],
+        ['/messages/subscriptions/by_id', '{TOPIC_BASE_URL}a.b.c', 'a.b.c'],
+        ['/messages/subscriptions/by_jurisdiction', 'AU', 'jurisdiction.AU'],
+        ['/messages/subscriptions/by_jurisdiction', '{TOPIC_BASE_URL}AU', 'jurisdiction.AU'],
     ]
 )
 def test_subscriptions(client, app, subscriptions_repo, callback_server, url, topic, pattern):
-    topic = topic.replace('TOPIC_BASE_URL', f'{app.config.TOPIC_BASE_URL}/')
+    topic = topic.format(TOPIC_BASE_URL=f'{app.config.TOPIC_BASE_URL}/')
     subscription_callback = callback_server.valid_callback_url(1)
     data = {
         'hub.mode': 'subscribe',
@@ -89,12 +90,79 @@ def test_subscriptions(client, app, subscriptions_repo, callback_server, url, to
         'hub.lease_seconds': 3600,
         'hub.callback': subscription_callback
     }
+    # creating subscription
     response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
     assert response.status_code == HTTPStatus.OK, response.json
-
+    # deleting subcription
     data['hub.mode'] = 'unsubscribe'
     response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
     assert response.status_code == HTTPStatus.OK, response.json
-
+    # subscription can't be deleted if it does not exist
     response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
     assert response.status_code == HTTPStatus.NOT_FOUND, response.json
+
+
+@pytest.mark.parametrize(
+    'url',
+    [
+        '/messages/subscriptions/by_id',
+        '/messages/subscriptions/by_jurisdiction'
+    ]
+)
+def test_subscriptions_errors(client, app, subscriptions_repo, callback_server, url):
+
+    topic = 'a.b.c'
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+    }
+    # subscription request will not pass form data verification
+    response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json
+
+    topic = 'a.b.c'
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+        'hub.lease_seconds': 3600,
+        'hub.callback': callback_server.invalid_callback_url('invalid_callback_error')
+    }
+    # subscription request will not pass callback verification
+    response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json
+    assert callback_server.get_callback_record(-1)['id'] == 'invalid_callback_error'
+
+    topic = 'a.b.c*'
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+        'hub.lease_seconds': 3600,
+        'hub.callback': callback_server.valid_callback_url('valid_callback_url')
+    }
+    # subscription request will not pass topic verification
+    response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json
+
+    # testing invalid topic url
+    topic = f'{app.config.TOPIC_BASE_URL}/a.b.c*'
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+        'hub.lease_seconds': 3600,
+        'hub.callback': callback_server.valid_callback_url('valid_callback_url')
+    }
+    # subscription request will not pass topic verification
+    response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json
+
+    # testing invalid topic base url
+    topic = 'http://topic.localhost/topic/a.b.c*'
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+        'hub.lease_seconds': 3600,
+        'hub.callback': callback_server.valid_callback_url('valid_callback_url')
+    }
+    # subscription request will not pass topic verification
+    response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json
