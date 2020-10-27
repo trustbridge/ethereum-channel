@@ -54,7 +54,7 @@ def get_topic(topic):
 def subscriptions(form_data):
     topic_prefix = ''
     if request.url.endswith('by_jurisdiction'):
-        topic_prefix = app.config.SENDER
+        topic_prefix = 'jurisdiction'
     SubscriptionActionUseCase(
         subscriptions_repo=app.repos.subscriptions,
         topic_base_url=app.config.TOPIC_BASE_URL

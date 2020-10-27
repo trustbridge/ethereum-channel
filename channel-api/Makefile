@@ -4,6 +4,12 @@ run-api:
 	python -m src.api
 
 
+.PHONY: run-callback-server
+.ONESHELL:
+run-callback-server:
+	python -m tests.utils.servers.callback
+
+
 .PHONY: run-callback-delivery-processor
 .ONESHELL:
 run-callback-delivery-processor:

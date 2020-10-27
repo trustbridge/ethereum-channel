@@ -7,6 +7,7 @@ and the receiver(required by the sender to send messages) contract is 'GB'.
 import uuid
 from http import HTTPStatus
 import pytest
+from libtrustbridge.websub.domain import Pattern
 
 
 def test_post_get_message(client, app):
@@ -91,8 +92,12 @@ def test_subscriptions(client, app, subscriptions_repo, callback_server, url, to
         'hub.callback': subscription_callback
     }
     # creating subscription
+    # checking that the subscription does not exist
+    assert not subscriptions_repo.get_subscriptions_by_pattern(Pattern(pattern))
     response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')
     assert response.status_code == HTTPStatus.OK, response.json
+    # checking that a single subscription was created for the expected pattern
+    assert len(subscriptions_repo.get_subscriptions_by_pattern(Pattern(pattern))) == 1
     # deleting subcription
     data['hub.mode'] = 'unsubscribe'
     response = client.post(url, data=data, mimetype='application/x-www-form-urlencoded')

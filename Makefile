@@ -16,7 +16,7 @@ run-contract-event-listener:
 	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 
-.PHONY: run-channel-api
+.PHONY: run-channel-api-au
 .ONESHELL:
 run-channel-api-au:
 	cat docker-compose.base.yml docker-compose.channel-api-au.yml > docker-compose.yml
@@ -76,18 +76,6 @@ shell-channel-api-gb:
 	@ docker-compose exec channel-api-gb /bin/bash
 
 
-.PHONY: shell-websub-hub-au
-.ONESHELL:
-shell-websub-hub-au:
-	@ docker-compose exec websub-hub-au /bin/bash
-
-
-.PHONY: shell-websub-hub-gb
-.ONESHELL:
-shell-websub-hub-gb:
-	@ docker-compose exec websub-hub-gb /bin/bash
-
-
 .PHONY: shell-contract-event-listener-au
 .ONESHELL:
 shell-contract-event-listener-au:
@@ -103,8 +91,3 @@ shell-contract-event-listener-gb:
 .ONESHELL:
 shell-contract-event-listener-contract:
 	@ docker-compose exec contract-event-listener-contract /bin/bash
-
-.PHONY: shell-contract-event-listener
-.ONESHELL:
-shell-contract-event-listener:
-	@ docker-compose exec contract-event-listener /bin/bash

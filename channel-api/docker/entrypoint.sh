@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-
+cd /channel-api
 case "${1,,}" in
   server)
-    cd /channel-api
-    python -m src.api
+    make run-api
     ;;
   callback-server)
-    cd /channel-api
-    python -m tests.utils.servers.callback
+    make run-callback-server
+    ;;
+  new-messages-observer-processor)
+    make run-new-messages-observer-processor
+    ;;
+  callback-spreader-processor)
+    make run-callback-spreader-processor
+    ;;
+  callback-delivery-processor)
+    make run-callback-delivery-processor
     ;;
   container)
     echo "Container started"

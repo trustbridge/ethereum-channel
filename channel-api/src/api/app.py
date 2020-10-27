@@ -29,6 +29,6 @@ def create_app(config: Box = None):
         app.register_blueprint(api.blueprint)
         error_handlers.register(app)
 
-        app.config.TOPIC_BASE_URL = urllib.parse.urljoin(config.SERVICE_URL, api.TOPIC_BASE_URL)
+        app.config.TOPIC_BASE_URL = urllib.parse.urljoin(config.CHANNEL_URL, api.TOPIC_BASE_URL)
 
     return app

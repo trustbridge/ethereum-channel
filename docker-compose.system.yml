@@ -23,14 +23,44 @@ services:
     environment:
       REQUIRED_UNLOCK_FILES: AWS
 
+  channel-api-callback-server:
+    <<: *channel-api-callback-server
+
   channel-api-au:
     <<: *channel-api
     container_name: tec-channel-api-au
     env_file:
-      - aws-credentials.env
+      - channel-api.default.env
       - channel-api-au.env
     ports:
       - '9090:9090'
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-new-messages-observer-au:
+    <<: *channel-api-new-messages-observer
+    container_name: channel-api-new-messages-observer-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-callback-spreader-au:
+    <<: *channel-api-callback-spreader
+    container_name: tec-channel-api-callback-spreader-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-callback-delivery-au:
+    <<: *channel-api-callback-delivery
+    container_name: tec-channel-api-callback-delivery-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
 
@@ -38,10 +68,37 @@ services:
     <<: *channel-api
     container_name: tec-channel-api-gb
     env_file:
-      - aws-credentials.env
+      - channel-api.default.env
       - channel-api-gb.env
     ports:
       - '9091:9091'
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-new-messages-observer-gb:
+    <<: *channel-api-new-messages-observer
+    container_name: channel-api-new-messages-observer-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-callback-spreader-gb:
+    <<: *channel-api-callback-spreader
+    container_name: tec-channel-api-callback-spreader-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-callback-delivery-gb:
+    <<: *channel-api-callback-delivery
+    container_name: tec-channel-api-callback-delivery-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
 
@@ -53,89 +110,8 @@ services:
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
 
   contract-event-listener-gb:
-  contract-event-listener:
     <<: *contract-event-listener
     container_name: tec-contract-event-listener-gb
     environment:
       YAML_CONFIG_FILE_VALUE: ${YAML_CONFIG_FILE_VALUE_GB}
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
-
-  websub-hub-au:
-    <<: *websub-hub
-    container_name: tec-websub-hub-au
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    container_name: tec-contract-event-listener
-    command: container
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-delivery-processor-au:
-    <<: *websub-hub
-    container_name: tec-callback-delivery-processor-au
-    command: callback-delivery-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-spreader-processor-au:
-    <<: *websub-hub
-    container_name: tec-callback-spreader-processor-au
-    command: callback-spreader-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  new-messages-observer-processor-au:
-    <<: *websub-hub
-    container_name: tec-new-messages-observer-processor-au
-    command: new-messages-observer-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  websub-hub-gb:
-    <<: *websub-hub
-    container_name: tec-websub-hub-gb
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-delivery-processor-gb:
-    <<: *websub-hub
-    container_name: tec-callback-delivery-processor-gb
-    command: callback-delivery-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-spreader-processor-gb:
-    <<: *websub-hub
-    container_name: tec-callback-spreader-processor-gb
-    command: callback-spreader-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  new-messages-observer-processor-gb:
-    <<: *websub-hub
-    container_name: tec-new-messages-observer-processor-gb
-    command: new-messages-observer-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
