@@ -115,3 +115,16 @@ services:
     environment:
       YAML_CONFIG_FILE_VALUE: ${YAML_CONFIG_FILE_VALUE_GB}
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  system-tests:
+    container_name: tec-system-tests
+    build:
+      context: system-tests
+      dockerfile: docker/Dockerfile
+    entrypoint: ["/entrypoint-wrapper.sh", "/system-tests/docker/entrypoint.sh"]
+    networks:
+      - internal
+    volumes:
+      - ./system-tests:/system-tests
+      - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh
+      - unlock:/tmp/unlock-file

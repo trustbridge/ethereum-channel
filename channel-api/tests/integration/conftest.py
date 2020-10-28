@@ -67,7 +67,7 @@ class CallbackServer:
         else:
             raise Exception(f'Unexpected response:{response.status_code}')
 
-    def clean_callback_records(self):
+    def clear_callback_records(self):
         url = urllib.parse.urljoin(self.base_url, 'callbacks')
         response = requests.delete(url)
         if response.status_code == HTTPStatus.OK:
@@ -85,5 +85,5 @@ class CallbackServer:
 @pytest.fixture(scope='function')
 def callback_server():
     callback_server = CallbackServer('http://tec-channel-api-callback-server:11001')
-    callback_server.clean_callback_records()
+    callback_server.clear_callback_records()
     yield callback_server

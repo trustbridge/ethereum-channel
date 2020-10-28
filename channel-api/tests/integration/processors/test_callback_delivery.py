@@ -52,7 +52,7 @@ def test(delivery_outbox_repo, callback_server):
         assert callback_record['id'] == str(i + 1)
         assert callback_record['status_code'] == HTTPStatus.OK
         assert callback_record['headers']['Link'] == expected_request_header['Link']
-    callback_server.clean_callback_records()
+    callback_server.clear_callback_records()
     processor.use_case.MAX_RETRY_TIME = 5
     for i in range(DeliverCallbackUseCase.MAX_ATTEMPTS):
         next(processor)

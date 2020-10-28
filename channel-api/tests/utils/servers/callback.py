@@ -92,22 +92,5 @@ def callbacks_record(index=None):
         return ('', HTTPStatus.OK)
 
 
-def callback_websub_invalid_challenge():
-    if request.method == 'GET':
-        try:
-
-            request.args[TOPIC_ATTR_KEY]
-            request.args[MODE_ATTR_KEY]
-            request.args[LEASE_SECONDS_ATTR_KEY]
-            request.args[HUB_CHALLENGE_ATTR_KEY]
-
-            return (request.args[HUB_CHALLENGE_ATTR_KEY] * 2, HTTPStatus.OK)
-        except KeyError:
-            return ('', HTTPStatus.BAD_REQUEST)
-    else:
-        logger.info(request.json)
-        return ('', HTTPStatus.OK)
-
-
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT)

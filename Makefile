@@ -52,6 +52,12 @@ shell-localstack:
 	@ docker-compose exec localstack /bin/sh
 
 
+.PHONY: shell-system-tests
+.ONESHELL:
+shell-system-tests:
+	@ docker-compose exec system-tests /bin/bash
+
+
 .PHONY: shell-deployer-participant-au
 .ONESHELL:
 shell-deployer-participant-au:
