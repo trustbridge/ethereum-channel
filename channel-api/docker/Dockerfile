@@ -1,18 +1,14 @@
-FROM node:alpine
+FROM python:3.8
 
 WORKDIR /channel-api
 
-RUN apk update &&\
-  apk add bash curl gcc g++ make python3 python3-dev git &&\
-  curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
+RUN apt-get update && \
+  apt-get install bash make gcc g++ && \
+  rm -rf /var/lib/apt/lists/*
 
-COPY poetry.lock  pyproject.toml ./
+COPY requirements.txt requirements.txt
 
-RUN source ~/.poetry/env && poetry config virtualenvs.create false && poetry install --no-root
-
-COPY package.json package-lock.json ./
-
-RUN npm ci
+RUN pip install -r requirements.txt
 
 COPY ./ ./
 

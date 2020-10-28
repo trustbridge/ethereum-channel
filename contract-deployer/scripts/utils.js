@@ -13,7 +13,7 @@ module.exports = {
     logger.info('Checking required environment variables...');
     for(const name of requiredEnvVarsNames){
       if(process.env[name] === undefined){
-        throw Error('Missing required env variable "%s"')
+        throw Error(`Missing required env variable "${name}"`)
       }else{
         logger.info('%s="%s"', name, process.env[name]);
       }

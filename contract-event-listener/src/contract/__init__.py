@@ -1,11 +1,10 @@
-import os
 import json
-import boto3
+from src import aws
 
 
 def Contract(web3, config):
     if config.S3:
-        s3 = boto3.resource('s3', endpoint_url=os.environ.get('AWS_ENDPOINT_URL'))
+        s3 = aws.s3()
         bucket = s3.Bucket(config.S3.Bucket)
         artifact = json.load(bucket.Object(config.S3.Key).get()['Body'])
         address = artifact['networks'][config.S3.NetworkId]['address']

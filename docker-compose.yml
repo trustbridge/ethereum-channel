@@ -26,6 +26,8 @@ x-services:
       - 'unlock:/tmp/unlock-file'
     networks:
       - internal
+    depends_on:
+      - localstack
 
   channel-api: &channel-api
     image: tec/channel-api
@@ -36,31 +38,35 @@ x-services:
     entrypoint: ["/entrypoint-wrapper.sh", "/channel-api/docker/entrypoint.sh"]
     command: server
     volumes:
-     - '/channel-api/node_modules'
      - '${dockerstagedir:-.}/channel-api:/channel-api'
      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
      - 'unlock:/tmp/unlock-file'
     networks:
       - internal
-    ports:
-      - '9090:9090'
 
-  websub-hub: &websub-hub
-    image: tec/websub-hub
-    container_name: tec-websub-hub
-    build:
-      context: ${dockerstagedir:-.}/websub-hub
-      dockerfile: docker/Dockerfile
-    entrypoint: ["/entrypoint-wrapper.sh", "/websub-hub/docker/entrypoint.sh"]
-    command: server
-    networks:
-      - internal
-    depends_on:
-      - localstack
-    volumes:
-      - "${dockerstagedir:-.}/websub-hub:/websub-hub"
-      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
-      - 'unlock:/tmp/unlock-file'
+  channel-api-new-messages-observer: &channel-api-new-messages-observer
+    <<: *channel-api
+    container_name: tec-channel-api-new-messages-observer
+    command: new-messages-observer-processor
+
+  channel-api-callback-delivery: &channel-api-callback-delivery
+    <<: *channel-api
+    container_name: tec-channel-api-callback-delivery
+    command: callback-delivery-processor
+
+  channel-api-callback-spreader: &channel-api-callback-spreader
+    <<: *channel-api
+    container_name: tec-channel-api-callback-spreader
+    command: callback-spreader-processor
+
+  channel-api-callback-server: &channel-api-callback-server
+    <<: *channel-api
+    container_name: tec-channel-api-callback-server
+    command: callback-server
+    environment:
+      PORT: '11001'
+    ports:
+      - '11001:11001'
 
   contract-event-listener: &contract-event-listener
     image: tec/contract-event-listener
@@ -69,7 +75,7 @@ x-services:
       context: ${dockerstagedir:-.}/contract-event-listener
       dockerfile: docker/Dockerfile
     entrypoint: ["/entrypoint-wrapper.sh", "/contract-event-listener/docker/entrypoint.sh"]
-    command: worker-debug
+    command: worker
     env_file:
       - aws-credentials.env
     networks:
@@ -79,8 +85,7 @@ x-services:
       - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
       - 'unlock:/tmp/unlock-file'
 
-services:
-  localstack:
+  localstack: &localstack
     image: localstack/localstack
     container_name: tec-localstack
     env_file: localstack.env
@@ -91,7 +96,7 @@ services:
       - 'unlock:/tmp/unlock-file'
       - '/var/run/docker.sock:/var/run/docker.sock'
 
-  ganache-cli:
+  ganache-cli: &ganache
     image: trufflesuite/ganache-cli
     container_name: tec-ganache-cli
     networks:
@@ -99,6 +104,7 @@ services:
     command: >
         ganache-cli
         --quiet
+        --db /ganache-cli-database
         --hostname 0.0.0.0
         --port 8585
         --networkId 15
@@ -107,6 +113,12 @@ services:
         --accounts 5
         --deterministic
         --mnemonic "myth like bonus scare over problem client lizard pioneer submit female collect"
+services:
+  localstack:
+    <<: *localstack
+
+  ganache:
+    <<: *ganache
 
   deployer-participant-au:
     <<: *deployer
@@ -126,14 +138,44 @@ services:
     environment:
       REQUIRED_UNLOCK_FILES: AWS
 
+  channel-api-callback-server:
+    <<: *channel-api-callback-server
+
   channel-api-au:
     <<: *channel-api
     container_name: tec-channel-api-au
     env_file:
-      - aws-credentials.env
+      - channel-api.default.env
       - channel-api-au.env
     ports:
       - '9090:9090'
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-new-messages-observer-au:
+    <<: *channel-api-new-messages-observer
+    container_name: channel-api-new-messages-observer-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-callback-spreader-au:
+    <<: *channel-api-callback-spreader
+    container_name: tec-channel-api-callback-spreader-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
+
+  channel-api-callback-delivery-au:
+    <<: *channel-api-callback-delivery
+    container_name: tec-channel-api-callback-delivery-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-au
 
@@ -141,10 +183,37 @@ services:
     <<: *channel-api
     container_name: tec-channel-api-gb
     env_file:
-      - aws-credentials.env
+      - channel-api.default.env
       - channel-api-gb.env
     ports:
       - '9091:9091'
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-new-messages-observer-gb:
+    <<: *channel-api-new-messages-observer
+    container_name: channel-api-new-messages-observer-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-callback-spreader-gb:
+    <<: *channel-api-callback-spreader
+    container_name: tec-channel-api-callback-spreader-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
+
+  channel-api-callback-delivery-gb:
+    <<: *channel-api-callback-delivery
+    container_name: tec-channel-api-callback-delivery-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
     environment:
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
 
@@ -162,80 +231,15 @@ services:
       YAML_CONFIG_FILE_VALUE: ${YAML_CONFIG_FILE_VALUE_GB}
       REQUIRED_UNLOCK_FILES: AWS channel-node-participant-gb
 
-  websub-hub-au:
-    <<: *websub-hub
-    container_name: tec-websub-hub-au
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-delivery-processor-au:
-    <<: *websub-hub
-    container_name: tec-callback-delivery-processor-au
-    command: callback-delivery-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-spreader-processor-au:
-    <<: *websub-hub
-    container_name: tec-callback-spreader-processor-au
-    command: callback-spreader-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  new-messages-observer-processor-au:
-    <<: *websub-hub
-    container_name: tec-new-messages-observer-processor-au
-    command: new-messages-observer-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-au.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  websub-hub-gb:
-    <<: *websub-hub
-    container_name: tec-websub-hub-gb
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-delivery-processor-gb:
-    <<: *websub-hub
-    container_name: tec-callback-delivery-processor-gb
-    command: callback-delivery-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  callback-spreader-processor-gb:
-    <<: *websub-hub
-    container_name: tec-callback-spreader-processor-gb
-    command: callback-spreader-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
-
-  new-messages-observer-processor-gb:
-    <<: *websub-hub
-    container_name: tec-new-messages-observer-processor-gb
-    command: new-messages-observer-processor
-    env_file:
-      - websub-hub.default.env
-      - websub-hub-gb.env
-    environment:
-      REQUIRED_UNLOCK_FILES: AWS
+  system-tests:
+    container_name: tec-system-tests
+    build:
+      context: system-tests
+      dockerfile: docker/Dockerfile
+    entrypoint: ["/entrypoint-wrapper.sh", "/system-tests/docker/entrypoint.sh"]
+    networks:
+      - internal
+    volumes:
+      - ./system-tests:/system-tests
+      - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh
+      - unlock:/tmp/unlock-file

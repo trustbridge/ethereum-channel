@@ -3,6 +3,16 @@
     -
       Id: MessageReceivedEventLogReceiver
       Type: LOG
+      JSON:
+        id: transactionHash
+        message: args
+    -
+      Id: MessageReceivedEventSQLReceiver
+      Type: SQS
+      QueueUrl: http://tec-localstack:10001/queue/channel-au
+      JSON:
+        id: transactionHash
+        message: args
     -
       Id: MessageSentEventLogReceiver
       Type: LOG
@@ -13,6 +23,7 @@
         Name: MessageReceivedEvent
       Receivers:
         - MessageReceivedEventLogReceiver
+        - MessageReceivedEventSQLReceiver
     -
       Id: MessageSentEventListener
       Event:

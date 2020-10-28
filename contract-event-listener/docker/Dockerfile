@@ -10,4 +10,6 @@ RUN pip install -r requirements.txt
 
 COPY ./ ./
 
+ENV PYTHONDONTWRITEBYTECODE=1
+
 ENTRYPOINT ["/contract-event-listener/docker/entrypoint.sh"]
