@@ -6,7 +6,7 @@ export NODE_PATH="$(npm root -g --quiet)"
 DEPLOYER_DIR=/deployer
 DEPLOYER_SCRIPTS_DIR=$DEPLOYER_DIR/scripts
 CONTRACT_DEPLOYMENT_DIR=/tmp/contract-deployment
-CONTRACT_DIR=/tmp/contract
+CONTRACT_DIR="${CONTRACT_DIR:-/tmp/contract}"
 
 cd $DEPLOYER_DIR
 rsync -av $CONTRACT_DIR/ $CONTRACT_DEPLOYMENT_DIR/

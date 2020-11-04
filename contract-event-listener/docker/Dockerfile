@@ -1,6 +1,6 @@
 FROM python:3.8-alpine
 
-RUN apk update && apk add bash make g++ gcc
+RUN apk update && apk add bash make g++ gcc nmap
 
 WORKDIR /contract-event-listener
 

@@ -2,7 +2,7 @@ FROM python:3.8-alpine
 
 WORKDIR /system-tests
 
-RUN apk update && apk add make bash
+RUN apk update && apk add make bash nmap
 
 COPY requirements.txt requirements.txt
 

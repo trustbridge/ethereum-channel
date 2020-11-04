@@ -8,6 +8,18 @@ def test(
 ):
 
     """
+    Testing channels participants lists.
+    They must have each other on the participants list in order to communicate.
+    """
+
+    r = channel_api_au.get_participants()
+    assert r.status_code == HTTPStatus.OK
+    assert r.json() == [channel_api_gb.sender]
+    r = channel_api_gb.get_participants()
+    assert r.status_code == HTTPStatus.OK
+    assert r.json() == [channel_api_au.sender]
+
+    """
     Posting subscriptions to "jurisdiction.AU" and "jurisdiction.GB" topics.
     Currenly the only topics that cause notifications are "jurisdiction.<RECEIVER>" topics.
     All the subscriptions below are equivalent. The difference there is the way the topic

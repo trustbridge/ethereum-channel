@@ -1,7 +1,6 @@
-# Inbound Event Listener
+# README
 
-## Short Description
-A single-threaded worker that listens for ethereum blockchain contract events according to provided configuration.
+A single-threaded worker that reroutes for ethereum blockchain contract events according to provided configuration.
 
 The configuration contains 3 main sections:
 1. Worker: configures main worker parameters:
@@ -14,63 +13,63 @@ The configuration contains 3 main sections:
 1. Listeners - configures listeners that listen for a specified event of the contract and then send it to receivers.
 
 
-## Example config
+#### Config Example
 
 ```yaml
 ---
-  Receivers: # List of receivers
+  Receivers: # Receivers list
     -
-      Id: LogReceiver
+      Id: MessageReceivedEventLogReceiver # receiver id, must be unique
+      Type: LOG # receiver type, case sensitive
+      JSON: # Event data format
+        id: transactionHash # jmespath to value inside raw event payload
+        message: args # jmespath to value inside raw event payload
+    -
+      Id: MessageReceivedEventSQLReceiver # receiver id, must be unique
+      Type: SQS # receiver type, case sensitive
+      QueueUrl: http://tec-localstack:10001/queue/channel-au # SQS queue url
+      JSON: # Event data format
+        id: transactionHash # jmespath to value inside raw event payload
+        message: args # jmespath to value inside raw event payload
+    -
+      Id: MessageSentEventLogReceiver
       Type: LOG
+  Listeners: # Listeners list
     -
-      Id: SQSReceiver # required
-      Type: SQS # required
-      QueueUrl: http://ec-iel-localstack:10001/queue/queue-1 # required
-      Config:
-        AWS: # optional, https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
-          region_name: us-east-1
-          endpoint_url: http://ec-iel-localstack:10001
-        Message: # optional, https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.send_message
-          DelaySeconds: 5
-  Listeners: # List of listeners
-    -
-      Id: EventOneListener # required
-      Event: # required
-        Name: EventOne # required, name of a contract event
-        Filter: # optional, https://web3py.readthedocs.io/en/stable/filters.html#event-log-filters
-          fromBlock: latest # disable synchronization using last seen block file
-      Receivers: # required
-        - LogReceiver # receiver id
-    -
-      Id: EventTwoListener
+      Id: MessageReceivedEventListener # listener id, must be unique
       Event:
-        Name: EventTwo
+        Name: MessageReceivedEvent # Event name which listener listens
+          Filter: # optional, https://web3py.readthedocs.io/en/stable/filters.html#event-log-filters
+            fromBlock: latest
+      Receivers: # Receivers to which listener sends events
+        - MessageReceivedEventLogReceiver
+        - MessageReceivedEventSQLReceiver
+    -
+      Id: MessageSentEventListener
+      Event:
+        Name: MessageSentEvent
       Receivers:
-        - SQSReceiver
-  Worker: # Worker configuration
-    Blockchain: # required
-      URI: ws://ec-iel-ganache-cli:8585 # connection url
+        - MessageSentEventLogReceiver
+  Worker:
+    Blockchain:
+      URI: ws://tec-ganache-cli:8585 # Blockchain node endpoint
     General:
-      PollingInterval: 5  # optional, event polling interval (default=5)
-      ListenerBlocksLogDir: /worker/listener-blocks-log # required, directory where worker records last seen blocks for each listener separately
-    Contract: # required
-      ABI:  /contracts/EventEmitter/build/contracts/EventEmitter.json # contract abi file, abi must be under "abi" key
-      Address: /contracts/EventEmitter/address/EventEmitter.address # must contain contract address, single line
-
+      PollingInterval: 5 # Listeners polling interval
+      ListenerBlocksLogDir: /tmp/listener-blocks-log #  Listeners last seen block files
+      LoggerName: AU
+    Contract:
+      S3:
+        Bucket: contract # contract build artifact bucket name
+        Key: channel-node-participant-au/ChannelNode.json # contract build artifact key
+        NetworkId: "15" # network id, must be sting
 ```
 
+#### Entrypoint Args:
+1. ```worker``` - launch worker in production mode
+1. ```worker-debug``` - launch worker in debug mode
+1. ```test``` - launch tests
+1. ```container``` - wait indefinitely, useful for docker development
 
-## DEV ENV
-
-**Requirements**:
-1. Docker
-1. Docker Compose
-1. Make
-
-**Usage:**
-1. ``cd`` to Inbound Event Listener root dir
-1. ```make run-fg``` to start the project
-1. ```make shell-worker``` to shell into worker container
-1. ```make run-debug``` inside worker container shell to start worker
-1. ```make shell-truffle-console``` to open truffle console
-1. ```let emitter = await EventEmitter.deployed()``` inside truffle console, then ```emitter.emitEvent(1, "EventMessage")```. This will emit and event named ```EventOne```. In the worker shell you'll see output signalizing that event was sent to corresponding receiver.
+#### Config(Environment):
+1. ```JSON_CONFIG_FILE_VALUE``` - set JSON config file content through environment
+1. ```YAML_CONFIG_FILE_VALUE``` - set YAML config file content through environment

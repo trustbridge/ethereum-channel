@@ -16,7 +16,6 @@ async function main(){
   const S3 = new AWS.S3();
   const bucket = process.env.CONTRACT_BUCKET_NAME;
   const prefix = process.env.CONTRACT_KEY_PREFIX || '';
-  const key = path.join(prefix, constants.CONTRACT_ARTIFACTS_KEY);
   const tmpDirectory = await fs.mkdtemp(path.join(os.tmpdir(),'deployer_self_test_'));
   logger.info('Created temp dir %s', tmpDirectory);
   try{

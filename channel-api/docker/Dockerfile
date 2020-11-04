@@ -3,7 +3,7 @@ FROM python:3.8
 WORKDIR /channel-api
 
 RUN apt-get update && \
-  apt-get install bash make gcc g++ && \
+  apt-get install -y bash make gcc g++ nmap && \
   rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt

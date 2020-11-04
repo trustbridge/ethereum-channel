@@ -16,14 +16,17 @@ fi
 
 set -euo pipefail
 
+cd /contract-event-listener
+
 case "${1,,}" in
   worker)
-    cd /contract-event-listener
     make run
     ;;
   worker-debug)
-    cd /contract-event-listener
     make run-debug
+    ;;
+  test)
+    make test
     ;;
   container)
     echo "Container started"
