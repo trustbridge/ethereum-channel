@@ -1,11 +1,23 @@
-.PHONY: run
+.PHONY: run-system
 .ONESHELL:
-run:
+run-system:
 	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
 	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
 	cat docker-compose.base.yml docker-compose.system.yml > docker-compose.yml
 	docker-compose down -v
 	docker-compose up --build --remove-orphans --renew-anon-volumes
+
+
+.PHONY: run-system-tests
+.ONESHELL:
+run-system-tests:
+	export YAML_CONFIG_FILE_VALUE_AU="$$(cat contract-event-listener-au.yml)"
+	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
+	cat docker-compose.base.yml docker-compose.system.yml > docker-compose.yml
+	docker-compose down -v
+	docker-compose build
+	docker-compose run system-tests test
+	docker-compose down -v
 
 
 .PHONY: run-contract-event-listener
@@ -16,6 +28,16 @@ run-contract-event-listener:
 	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 
+.PHONY: run-contract-event-listener-test
+.ONESHELL:
+run-contract-event-listener-test:
+	cat docker-compose.base.yml docker-compose.contract-event-listener.yml > docker-compose.yml
+	docker-compose down -v
+	docker-compose build
+	docker-compose run contract-event-listener test
+	docker-compose down -v
+
+
 .PHONY: run-channel-api-au
 .ONESHELL:
 run-channel-api-au:
@@ -24,15 +46,27 @@ run-channel-api-au:
 	docker-compose up --build --remove-orphans --renew-anon-volumes
 
 
+.PHONY: run-channel-api-au-test
+.ONESHELL:
+run-channel-api-au-test:
+	cat docker-compose.base.yml docker-compose.channel-api-au.yml > docker-compose.yml
+	docker-compose down -v
+	docker-compose build
+	docker-compose run --use-aliases --service-ports --name tec-channel-api-au  channel-api-au test
+	docker-compose down -v
+
+
 .PHONY: stop
 .ONESHELL:
 stop:
 	@ docker-compose down
 
+
 .PHONY: clean
 .ONESHELL:
 clean:
 	@ docker-compose down --rmi all --volumes
+
 
 .PHONY: build
 .ONESHELL:
@@ -92,6 +126,7 @@ shell-contract-event-listener-au:
 .ONESHELL:
 shell-contract-event-listener-gb:
 	@ docker-compose exec contract-event-listener-gb /bin/bash
+
 
 .PHONY: shell-contract-event-listener-contract
 .ONESHELL:

@@ -93,8 +93,8 @@ x-services:
       - internal
     volumes:
       - '${dockerstagedir:-.}/localstack:/docker-entrypoint-initaws.d'
-      - 'unlock:/tmp/unlock-file'
       - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'unlock:/tmp/unlock-file'
 
   ganache-cli: &ganache
     image: trufflesuite/ganache-cli

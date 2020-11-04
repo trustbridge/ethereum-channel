@@ -19,13 +19,13 @@ while getopts ":s:e:dch" opt; do
     c )
       CONTINUE=1
       ;;
-    s ) # process option h
+    s )
       SLEEP="$OPTARG"
       ;;
-    d ) # process option t
+    d )
       DEPLOY=1
       ;;
-    e ) # process option t
+    e )
       EXTERNAL_SCRIPTS+=("$OPTARG")
       ;;
     h )
@@ -50,14 +50,6 @@ fi
 for SCRIPT in "${EXTERNAL_SCRIPTS[@]}"; do
   bash scripts/exec-external.sh "$SCRIPT"
 done
-
-# unlocking services that are waiting for the contract initialization
-# replace all slashes with dashes
-UNLOCK_FILE_NAME="$(echo $CONTRACT_KEY_PREFIX |  sed -e 's/\//-/g')"
-if [ -d /tmp/unlock-file ]; then
-  echo "Unlock file /tmp/unlock-file/$UNLOCK_FILE_NAME created"
-  touch /tmp/unlock-file/$UNLOCK_FILE_NAME
-fi
 
 if [[ -n "$CONTINUE" ]]; then
   echo "Waiting forever..."

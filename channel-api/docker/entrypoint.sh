@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+
 cd /channel-api
+
 case "${1,,}" in
   server)
     make run-api
@@ -17,6 +19,10 @@ case "${1,,}" in
     ;;
   callback-delivery-processor)
     make run-callback-delivery-processor
+    ;;
+  test)
+    make run-api &
+    make test
     ;;
   container)
     echo "Container started"
