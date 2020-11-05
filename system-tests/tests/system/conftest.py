@@ -7,13 +7,11 @@ import urllib
 import pytest
 import requests
 
-CHANNEL_API_GB_URL = os.environ['CHANNEL_API_GB_URL']
-CHANNEL_API_GB_SENDER = os.environ['CHANNEL_API_GB_SENDER']
-CHANNEL_API_GB_SENDER_REF = os.environ['CHANNEL_API_GB_SENDER_REF']
+CHANNEL_API_B_URL = os.environ['CHANNEL_API_B_URL']
+CHANNEL_API_B_SENDER = os.environ['CHANNEL_API_B_SENDER']
 
-CHANNEL_API_AU_URL = os.environ['CHANNEL_API_AU_URL']
-CHANNEL_API_AU_SENDER = os.environ['CHANNEL_API_AU_SENDER']
-CHANNEL_API_AU_SENDER_REF = os.environ['CHANNEL_API_AU_SENDER_REF']
+CHANNEL_API_A_URL = os.environ['CHANNEL_API_A_URL']
+CHANNEL_API_A_SENDER = os.environ['CHANNEL_API_A_SENDER']
 
 CALLBACK_SERVER_URL = os.environ['CALLBACK_SERVER_URL']
 
@@ -27,10 +25,9 @@ logger = logging.getLogger('SYSTEM_TEST')
 
 class ChannelAPI:
 
-    def __init__(self, base_url, sender, sender_ref):
+    def __init__(self, base_url, sender):
         self.base_url = base_url
         self.sender = sender
-        self.sender_ref = sender_ref
         self.logger = logging.getLogger(urllib.parse.urlparse(base_url).netloc)
 
     def get_participants(self):
@@ -72,13 +69,13 @@ class ChannelAPI:
 
 
 @pytest.fixture(scope='function')
-def channel_api_gb():
-    yield ChannelAPI(CHANNEL_API_GB_URL, CHANNEL_API_GB_SENDER, CHANNEL_API_GB_SENDER_REF)
+def channel_api_b():
+    yield ChannelAPI(CHANNEL_API_B_URL, CHANNEL_API_B_SENDER)
 
 
 @pytest.fixture(scope='function')
-def channel_api_au():
-    yield ChannelAPI(CHANNEL_API_AU_URL, CHANNEL_API_AU_SENDER, CHANNEL_API_AU_SENDER_REF)
+def channel_api_a():
+    yield ChannelAPI(CHANNEL_API_A_URL, CHANNEL_API_A_SENDER)
 
 
 class CallbackServer:

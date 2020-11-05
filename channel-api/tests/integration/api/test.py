@@ -11,12 +11,16 @@ from libtrustbridge.websub.domain import Pattern
 
 
 def test_post_get_message(client, app):
+    # testing message with sender property set
+
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "object": "object",
-        "receiver": "GB"
+        "obj": "object",
+        "receiver": "GB",
+        "sender": "AU"
     }
+
     response = client.post('/messages', json=message)
     assert response.status_code == HTTPStatus.OK
     assert 'id' in response.json
@@ -26,12 +30,35 @@ def test_post_get_message(client, app):
     assert response.json['status'] == 'received'
     message = {
         **message,
-        'sender': app.config.SENDER,
-        'sender_ref': app.config.SENDER_REF
+        'sender': app.config.SENDER
     }
     assert response.json['message'] == message
     message_id = response.json['id']
 
+    # testing message without sender property, should be added automatically
+
+    message = {
+        "subject": "subject",
+        "predicate": "predicate",
+        "obj": "object",
+        "receiver": "GB"
+    }
+
+    response = client.post('/messages', json=message)
+    assert response.status_code == HTTPStatus.OK
+    assert 'id' in response.json
+    assert response.json['id']
+    assert isinstance(response.json['id'], str)
+    assert 'status' in response.json
+    assert response.json['status'] == 'received'
+    message = {
+        **message,
+        'sender': app.config.SENDER
+    }
+    assert response.json['message'] == message
+    message_id = response.json['id']
+
+    # testing that message added to the blockchain
     response = client.get(f'/messages/{message_id}')
     assert response.status_code == HTTPStatus.OK
     assert response.json == {
@@ -40,6 +67,7 @@ def test_post_get_message(client, app):
         'status': 'received'
     }
 
+    # testing that non existing message returns 404
     message_id = uuid.uuid4().hex
     response = client.get(f'/messages/{message_id}')
     assert response.status_code == HTTPStatus.NOT_FOUND

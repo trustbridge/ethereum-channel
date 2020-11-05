@@ -15,34 +15,37 @@ from libtrustbridge.websub.schemas import SubscriptionForm
 from libtrustbridge.websub.exceptions import SubscriptionNotFoundError, CallbackURLValidationError
 from libtrustbridge.errors.use_case_errors import NotFoundError, BadParametersError, ConflictError, UseCaseError
 from marshmallow import Schema, fields, ValidationError as MarshmallowValidationError
+from src import constants
 
 
 class SendMessageUseCase:
-    class MessageStatus:
-        RECEIVED = "received"
-        CONFIRMED = "confirmed"
-        REVOKED = "revoked"
-        UNDELIVERABLE = "undeliverable"
 
     class MessageSchema(Schema):
         subject = fields.String(required=True)
         predicate = fields.String(required=True)
-        object = fields.String(required=True)
+        obj = fields.String(required=True)
         receiver = fields.String(required=True)
+        sender = fields.String(required=False)
 
     def __init__(self, web3=None, contract=None, contract_owner_private_key=None):
         self.web3 = web3
         self.contract = contract
         self.contract_owner_private_key = contract_owner_private_key
 
-    def execute(self, message, sender, sender_ref):
+    def execute(self, message, sender):
         # validating message structure
         try:
             self.MessageSchema().load(message)
         except MarshmallowValidationError as e:
             raise BadParametersError(detail=str(e)) from e
 
-        message = {**message, 'sender': sender, 'sender_ref': sender_ref}
+        try:
+            if message['sender'] != sender:
+                raise BadParametersError(detail=f'message.sender != {sender}')
+        except KeyError:
+            pass
+
+        message = {**message, 'sender': sender}
 
         account = self.web3.eth.account.from_key(self.contract_owner_private_key)
         nonce = self.web3.eth.getTransactionCount(account.address)
@@ -53,7 +56,7 @@ class SendMessageUseCase:
         tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
         return dict(
             id=tx_hash.hex(),
-            status=self.MessageStatus.RECEIVED,
+            status=constants.MessageStatus.RECEIVED,
             message=message
         )
 
@@ -72,22 +75,21 @@ class GetMessageUseCase:
         tx_receipt = self.web3.eth.getTransactionReceipt(id)
         current_block = self.web3.eth.blockNumber
         if tx_receipt.status is False:
-            status = SendMessageUseCase.MessageStatus.UNDELIVERABLE
+            status = constants.MessageStatus.UNDELIVERABLE
         elif tx_receipt.blockNumber is None:
-            status = SendMessageUseCase.MessageStatus.RECEIVED
+            status = constants.MessageStatus.RECEIVED
         else:
             if current_block - tx_receipt.blockNumber > self.confirmation_threshold:
-                status = SendMessageUseCase.MessageStatus.CONFIRMED
+                status = constants.MessageStatus.CONFIRMED
             else:
-                status = SendMessageUseCase.MessageStatus.RECEIVED
+                status = constants.MessageStatus.RECEIVED
         tx_payload = self.contract.decode_function_input(tx.input)[1]['message']
         message = dict(
-            sender_ref=tx_payload[0],
-            subject=tx_payload[1],
-            predicate=tx_payload[2],
-            object=tx_payload[3],
-            sender=tx_payload[4],
-            receiver=tx_payload[5]
+            subject=tx_payload[0],
+            predicate=tx_payload[1],
+            obj=tx_payload[2],
+            sender=tx_payload[3],
+            receiver=tx_payload[4]
         )
         return dict(
             id=id,
