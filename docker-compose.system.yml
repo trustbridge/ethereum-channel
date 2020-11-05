@@ -138,13 +138,11 @@ services:
 
       CALLBACK_SERVER_URL: http://tec-channel-api-callback-server:11001/
 
-      CHANNEL_API_GB_URL: http://tec-channel-api-gb:9091/
-      CHANNEL_API_GB_SENDER: GB
-      CHANNEL_API_GB_SENDER_REF: sender_ref:GB
+      CHANNEL_API_B_URL: http://tec-channel-api-gb:9091/
+      CHANNEL_API_B_SENDER: GB
 
-      CHANNEL_API_AU_URL: http://tec-channel-api-au:9090/
-      CHANNEL_API_AU_SENDER: AU
-      CHANNEL_API_AU_SENDER_REF: sender_ref:AU
+      CHANNEL_API_A_URL: http://tec-channel-api-au:9090/
+      CHANNEL_API_A_SENDER: AU
     links:
       - localstack
       - ganache

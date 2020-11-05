@@ -20,8 +20,6 @@ def Config():
 
         MESSAGE_CONFIRMATION_THRESHOLD=int(env('CONFIRMATION_THRESHOLD', default='12')),
 
-        SENDER=env('SENDER', default='AU'),
-        SENDER_REF=env('SENDER_REF', default='')
-
+        SENDER=env('SENDER', default='AU')
     )
     return Box(environment_config)

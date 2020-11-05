@@ -4,6 +4,7 @@ from collections import OrderedDict
 import urllib
 import requests
 import pytest
+from src import constants
 from src.api import use_cases
 
 
@@ -12,7 +13,6 @@ def test_SendMessageUseCase():
     contract = mock.MagicMock()
     web3 = mock.MagicMock()
     sender = 'AU'
-    sender_ref = 'sender_ref:AU'
     use_case = use_cases.SendMessageUseCase(
         web3=web3,
         contract=contract,
@@ -21,23 +21,26 @@ def test_SendMessageUseCase():
     message = {
         'subject': 'subject',
         'predicate': 'predicate',
-        'object': 'object',
+        'obj': 'object',
         'receiver': 'GB'
     }
     complete_message = {
         **message,
-        'sender': sender,
-        'sender_ref': sender_ref
+        'sender': sender
     }
 
     # invalid message structure
     with pytest.raises(use_cases.BadParametersError):
-        use_case.execute({'message': {'text': 'Hello world!'}}, sender, sender_ref)
+        use_case.execute({'message': {'text': 'Hello world!'}}, sender)
+    contract.functions.send.assert_not_called()
+
+    with pytest.raises(use_cases.BadParametersError):
+        use_case.execute({**message, 'sender': 'GB'}, sender)
     contract.functions.send.assert_not_called()
 
     # valid message structure
     web3.eth.sendRawTransaction().hex.return_value = 'transaction_hash'
-    result = use_case.execute(message, 'AU', 'sender_ref:AU')
+    result = use_case.execute(message, sender)
 
     # checking general flow of the operation, call method, sign transaction, send transaction
     contract.functions.send.assert_called_once_with(complete_message)
@@ -49,7 +52,7 @@ def test_SendMessageUseCase():
 
     assert result == {
         'id': 'transaction_hash',
-        'status': use_case.MessageStatus.RECEIVED,
+        'status': constants.MessageStatus.RECEIVED,
         'message': complete_message
     }
 
@@ -66,10 +69,9 @@ def test_GetMessageUseCase():
     )
 
     message = OrderedDict()
-    message['sender_ref'] = 'sender_ref:AU'
     message['subject'] = 'subject'
     message['predicate'] = 'predicate'
-    message['object'] = 'object'
+    message['obj'] = 'object'
     message['sender'] = 'AU'
     message['receiver'] = 'GB'
 
@@ -95,7 +97,7 @@ def test_GetMessageUseCase():
     result = use_case.execute(id=id)
     assert result == {
         'id': id,
-        'status': use_cases.SendMessageUseCase.MessageStatus.UNDELIVERABLE,
+        'status': constants.MessageStatus.UNDELIVERABLE,
         'message': message
     }
 
@@ -105,7 +107,7 @@ def test_GetMessageUseCase():
     result = use_case.execute(id=id)
     assert result == {
         'id': id,
-        'status': use_cases.SendMessageUseCase.MessageStatus.RECEIVED,
+        'status': constants.MessageStatus.RECEIVED,
         'message': message
     }
 
@@ -115,7 +117,7 @@ def test_GetMessageUseCase():
     result = use_case.execute(id=id)
     assert result == {
         'id': id,
-        'status': use_cases.SendMessageUseCase.MessageStatus.CONFIRMED,
+        'status': constants.MessageStatus.CONFIRMED,
         'message': message
     }
 
@@ -125,7 +127,7 @@ def test_GetMessageUseCase():
     result = use_case.execute(id=id)
     assert result == {
         'id': id,
-        'status': use_cases.SendMessageUseCase.MessageStatus.RECEIVED,
+        'status': constants.MessageStatus.RECEIVED,
         'message': message
     }
 

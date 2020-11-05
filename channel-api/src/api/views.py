@@ -23,8 +23,7 @@ def post_messages():
         app.config.CONTRACT_OWNER_PRIVATE_KEY
     ).execute(
         request.json,
-        app.config.SENDER,
-        app.config.SENDER_REF
+        app.config.SENDER
     )
     return jsonify(result)
 
