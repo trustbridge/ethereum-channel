@@ -77,7 +77,7 @@ The proper minimal setup is defined in ```docker-compose.system.yml```, it consi
 
 #### HOW TO RUN(Contract Event Listener development environment)
 1. ```make run-contract-event-listener```
-1. ```make shell-contract-event-listener````
+1. ```make shell-contract-event-listener```
 
 > **NOTE:**
 >

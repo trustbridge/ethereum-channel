@@ -5,7 +5,8 @@ run-system:
 	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
 	cat docker-compose.base.yml docker-compose.system.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose up --build --remove-orphans --renew-anon-volumes
+	docker-compose build --parallel
+	docker-compose up --remove-orphans --renew-anon-volumes
 
 
 .PHONY: run-system-tests
@@ -15,7 +16,7 @@ run-system-tests:
 	export YAML_CONFIG_FILE_VALUE_GB="$$(cat contract-event-listener-gb.yml)"
 	cat docker-compose.base.yml docker-compose.system.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose build
+	docker-compose build --parallel
 	docker-compose run system-tests test
 	docker-compose down -v
 
@@ -25,7 +26,8 @@ run-system-tests:
 run-contract-event-listener:
 	cat docker-compose.base.yml docker-compose.contract-event-listener.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose up --build --remove-orphans --renew-anon-volumes
+	docker-compose build --parallel
+	docker-compose up --remove-orphans --renew-anon-volumes
 
 
 .PHONY: run-contract-event-listener-test
@@ -33,7 +35,7 @@ run-contract-event-listener:
 run-contract-event-listener-test:
 	cat docker-compose.base.yml docker-compose.contract-event-listener.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose build
+	docker-compose build --parallel
 	docker-compose run contract-event-listener test
 	docker-compose down -v
 
@@ -43,7 +45,8 @@ run-contract-event-listener-test:
 run-channel-api-au:
 	cat docker-compose.base.yml docker-compose.channel-api-au.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose up --build --remove-orphans --renew-anon-volumes
+	docker-compose build --parallel
+	docker-compose up --remove-orphans --renew-anon-volumes
 
 
 .PHONY: run-channel-api-au-test
@@ -51,7 +54,7 @@ run-channel-api-au:
 run-channel-api-au-test:
 	cat docker-compose.base.yml docker-compose.channel-api-au.yml > docker-compose.yml
 	docker-compose down -v
-	docker-compose build
+	docker-compose build --parallel
 	docker-compose run --use-aliases --service-ports --name tec-channel-api-au  channel-api-au test
 	docker-compose down -v
 
@@ -71,7 +74,7 @@ clean:
 .PHONY: build
 .ONESHELL:
 build:
-	@ docker-compose build --no-cache
+	@ docker-compose build --no-cache --parallel
 
 
 .PHONY: shell-ganache-cli
