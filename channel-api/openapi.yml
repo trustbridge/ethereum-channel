@@ -21,7 +21,6 @@ components:
             - predicate
             - subject
             - sender
-            - sender_ref
             - receiver
           properties:
             object:
@@ -33,8 +32,6 @@ components:
             receiver:
               type: string
             sender:
-              type: string
-            sender_ref:
               type: string
         status:
           type: string
@@ -132,6 +129,8 @@ paths:
                 subject:
                   type: string
                 receiver:
+                  type: string
+                sender:
                   type: string
 
       responses:
