@@ -38,9 +38,11 @@ x-services:
     entrypoint: ["/entrypoint-wrapper.sh", "/channel-api/docker/entrypoint.sh"]
     command: server
     volumes:
-     - '${dockerstagedir:-.}/channel-api:/channel-api'
-     - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
-     - 'unlock:/tmp/unlock-file'
+      - /channel-api/node_modules
+      - '${dockerstagedir:-.}/channel-api:/channel-api'
+      - '${dockerstagedir:-.}/entrypoint-wrapper.sh:/entrypoint-wrapper.sh'
+      - 'unlock:/tmp/unlock-file'
+      - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
       - internal
 
@@ -88,13 +90,17 @@ x-services:
   localstack: &localstack
     image: localstack/localstack
     container_name: tec-localstack
-    env_file: localstack.env
+    env_file:
+      - localstack.env
     networks:
       - internal
     volumes:
       - '${dockerstagedir:-.}/localstack:/docker-entrypoint-initaws.d'
       - '/var/run/docker.sock:/var/run/docker.sock'
       - 'unlock:/tmp/unlock-file'
+    ports:
+      - '10001:10001'
+      - '9999:9999'
 
   ganache-cli: &ganache
     image: trufflesuite/ganache-cli

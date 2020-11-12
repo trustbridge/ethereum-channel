@@ -42,7 +42,6 @@ components:
             - predicate
             - subject
             - sender
-            - sender_ref
             - receiver
           properties:
             object:
@@ -54,8 +53,6 @@ components:
             receiver:
               type: string
             sender:
-              type: string
-            sender_ref:
               type: string
         status:
           type: string
@@ -153,6 +150,8 @@ paths:
                 subject:
                   type: string
                 receiver:
+                  type: string
+                sender:
                   type: string
 
       responses:
@@ -263,3 +262,10 @@ paths:
 1. ```callback-delivery-processor``` - start ```Callback Delivery```
 1. ```test``` - start tests
 1. ```container``` - wait indefinitely
+
+
+#### Channel API Serverless Deployment:
+```Channel API``` docker image has ```serverless``` deployment tools installed. In order to use them you need to:
+1. ```make run-channel-api-au```
+1. ```make shell-channel-api-au```
+1. ```npx serverless <command>```

@@ -2,13 +2,17 @@ FROM python:3.8
 
 WORKDIR /channel-api
 
-RUN apt-get update && \
-  apt-get install -y bash make gcc g++ nmap && \
-  rm -rf /var/lib/apt/lists/*
+COPY ./docker ./docker
+
+RUN docker/install-base.sh
 
 COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
+
+COPY ./package* ./
+
+RUN npm ci
 
 COPY ./ ./
 
