@@ -46,15 +46,16 @@ contract ChannelNode {
         return participantList;
     }
 
-    function getParticipant(string memory participant)
-        public
-        view
-        returns (Participant memory)
+    function getParticipant(string memory participant) public view returns (Participant memory)
     {
         return participants[participant];
     }
 
-    function addParticipant(string memory _name, address _address) public {
+    // FIXME: add or check that participant name in participantsList
+    function addParticipant(
+        string memory _name,
+        address _address
+    ) public {
         require(
             msg.sender == owner,
             "Only the owner of this contract can add participants."
@@ -84,9 +85,13 @@ contract ChannelNode {
     }
 
     function send(Message memory message) public {
-        participants[message.receiver].participantContract.receiveMessage(
-            message
-        );
+        Participant memory receiver = participants[message.receiver];
+
+        require(receiver.participantAddress != address(0), "UserError: receiver not found");
+        require(address(receiver.participantContract) != address(0), "UserError: receiver participant contract is not set");
+
+        receiver.participantContract.receiveMessage(message);
+
         emit MessageSentEvent(
           message.subject,
           message.predicate,
