@@ -92,7 +92,7 @@ class ProcessMessageQueueUseCase:
         self.gas_price = self.generate_gas_price()
         self.transactions_count = 1
         self.logger.debug('gas price updated:%s', self.gas_price)
-        self.logger.debug('transactions_count:%s', self.transactions_count)
+        self.logger.debug('transactions_count reset', self.transactions_count)
 
     def generate_gas_price(self):
         return self.web3.eth.generateGasPrice()
