@@ -14,49 +14,36 @@ from libtrustbridge.websub.constants import (
 from libtrustbridge.websub.schemas import SubscriptionForm
 from libtrustbridge.websub.exceptions import SubscriptionNotFoundError, CallbackURLValidationError
 from libtrustbridge.errors.use_case_errors import NotFoundError, BadParametersError, ConflictError, UseCaseError
-from marshmallow import Schema, fields, ValidationError as MarshmallowValidationError
+from marshmallow import ValidationError as MarshmallowValidationError
+from src.schemas import MessageSchema
 from src import constants
 
 
 class SendMessageUseCase:
 
-    class MessageSchema(Schema):
-        subject = fields.String(required=True)
-        predicate = fields.String(required=True)
-        obj = fields.String(required=True)
-        receiver = fields.String(required=True)
-        sender = fields.String(required=False)
+    def __init__(self, messages_repo=None, sender=None):
+        self.messages_repo = messages_repo
+        self.sender = sender
 
-    def __init__(self, web3=None, contract=None, contract_owner_private_key=None):
-        self.web3 = web3
-        self.contract = contract
-        self.contract_owner_private_key = contract_owner_private_key
-
-    def execute(self, message, sender):
+    def execute(self, message):
         # validating message structure
         try:
-            self.MessageSchema().load(message)
+            MessageSchema().load(message)
         except MarshmallowValidationError as e:
             raise BadParametersError(detail=str(e)) from e
 
         try:
-            if message['sender'] != sender:
-                raise BadParametersError(detail=f'message.sender != {sender}')
+            if message['sender'] != self.sender:
+                raise BadParametersError(detail=f'message.sender != {self.sender}')
         except KeyError:
             pass
 
-        message = {**message, 'sender': sender}
+        message['sender'] = self.sender
+        self.messages_repo.post_job(message)
 
-        account = self.web3.eth.account.from_key(self.contract_owner_private_key)
-        nonce = self.web3.eth.getTransactionCount(account.address)
-
-        # gas price and gas amount should be determined automatically using ethereum node API
-        tx = self.contract.functions.send(message).buildTransaction({'nonce': nonce})
-        signed_tx = self.web3.eth.account.sign_transaction(tx, private_key=self.contract_owner_private_key)
-        tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
         return dict(
-            id=tx_hash.hex(),
-            status=constants.MessageStatus.RECEIVED,
+            id=None,
+            status=constants.MessageStatus.SENDING,
             message=message
         )
 

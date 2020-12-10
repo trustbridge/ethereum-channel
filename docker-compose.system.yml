@@ -66,6 +66,15 @@ services:
     environment:
       REQUIRED_UNLOCK_FILES: AWS CHANNEL_NODE_AU
 
+  channel-api-message-sender-au:
+    <<: *channel-api-message-sender
+    container_name: tec-channel-api-message-sender-au
+    env_file:
+      - channel-api.default.env
+      - channel-api-au.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS CHANNEL_NODE_AU
+
   channel-api-gb:
     <<: *channel-api
     container_name: tec-channel-api-gb
@@ -98,6 +107,15 @@ services:
   channel-api-callback-delivery-gb:
     <<: *channel-api-callback-delivery
     container_name: tec-channel-api-callback-delivery-gb
+    env_file:
+      - channel-api.default.env
+      - channel-api-gb.env
+    environment:
+      REQUIRED_UNLOCK_FILES: AWS CHANNEL_NODE_GB
+
+  channel-api-message-sender-gb:
+    <<: *channel-api-message-sender
+    container_name: tec-channel-api-message-sender-gb
     env_file:
       - channel-api.default.env
       - channel-api-gb.env

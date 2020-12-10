@@ -20,6 +20,9 @@ case "${1,,}" in
   callback-delivery-processor)
     make run-callback-delivery-processor
     ;;
+  message-sender-processor)
+    make run-message-sender-processor
+    ;;
   test)
     make run-api &
     make test
