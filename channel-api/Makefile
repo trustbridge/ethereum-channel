@@ -28,6 +28,12 @@ run-new-messages-observer-processor:
 	python -m src.processors.new_messages_observer
 
 
+.PHONY: run-message-sender-processor
+.ONESHELL:
+run-message-sender-processor:
+	python -m src.processors.message_sender
+
+
 .PHONY: test
 .ONESHELL:
 test:

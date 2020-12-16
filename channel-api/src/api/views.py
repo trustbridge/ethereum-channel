@@ -18,13 +18,9 @@ blueprint = Blueprint('api', __name__)
 @mimetype(include=['application/json'])
 def post_messages():
     result = SendMessageUseCase(
-        app.web3,
-        app.contract,
-        app.config.CONTRACT_OWNER_PRIVATE_KEY
-    ).execute(
-        request.json,
-        app.config.SENDER
-    )
+        messages_repo=app.repos.messages,
+        sender=app.config.SENDER
+    ).execute(request.json)
     return jsonify(result)
 
 

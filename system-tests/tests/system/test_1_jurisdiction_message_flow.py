@@ -95,7 +95,7 @@ def test(
     assert r.status_code == HTTPStatus.OK, r.text
 
     # shortcuts for the callback received message verifications
-    def verify_callback_message_received(message, callback_id):
+    def verify_callback_message_received(channel_api, message, callback_id):
         records = callback_server.get_callback_records(
             id=callback_id,
             attemps=3,
@@ -104,7 +104,8 @@ def test(
         )
 
         assert len(records) == 1
-        assert records[0]['json'] == {'id': message['id']}
+        received_message = channel_api.get_message(records[0]['json']['id']).json()
+        assert received_message['message'] == message['message']
 
     def verify_callback_not_received_message(callback_id):
         assert not callback_server.get_callback_records(
@@ -124,11 +125,6 @@ def test(
             **message_data,
             'sender': channel_api.sender
         }
-        # testing that message added to a blockchain
-        r = channel_api.get_message(message['id'])
-        # testing that message recorded as expected
-        assert r.status_code == HTTPStatus.OK
-        assert r.json() == message, r.text
         return message
 
     """
@@ -151,16 +147,16 @@ def test(
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "obj": "hello world",
+        "obj": "from channel a to channel b",
         "receiver": channel_api_b.sender
     }
 
     message = post_message(channel_api_a, message)
 
     # verify expected receivers
-    verify_callback_message_received(message, 'prefixed.jurisdiction.channel.b')
-    verify_callback_message_received(message, 'url.jurisdiction.channel.b')
-    verify_callback_message_received(message, 'unprefixed.jurisdiction.channel.b')
+    verify_callback_message_received(channel_api_b, message, 'prefixed.jurisdiction.channel.b')
+    verify_callback_message_received(channel_api_b, message, 'url.jurisdiction.channel.b')
+    verify_callback_message_received(channel_api_b, message, 'unprefixed.jurisdiction.channel.b')
     # verify ignored receivers
     verify_callback_not_received_message('not.notify.channel.b')
     verify_callback_not_received_message('not.notify.channel.a')
@@ -188,16 +184,16 @@ def test(
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "obj": "hello world",
+        "obj": "from channel b to channel a",
         "receiver": channel_api_a.sender
     }
 
     message = post_message(channel_api_b, message)
 
     # verify expected receivers
-    verify_callback_message_received(message, 'prefixed.jurisdiction.channel.a')
-    verify_callback_message_received(message, 'url.jurisdiction.channel.a')
-    verify_callback_message_received(message, 'unprefixed.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'prefixed.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'url.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'unprefixed.jurisdiction.channel.a')
     # verify ignored receivers
     verify_callback_not_received_message('not.notify.channel.b')
     verify_callback_not_received_message('not.notify.channel.a')
@@ -226,14 +222,14 @@ def test(
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "obj": "hello world",
+        "obj": "unsubscribe from prefixed topics",
         "receiver": channel_api_a.sender
     }
 
     message = post_message(channel_api_b, message)
     # verify expected receivers
-    verify_callback_message_received(message, 'url.jurisdiction.channel.a')
-    verify_callback_message_received(message, 'unprefixed.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'url.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'unprefixed.jurisdiction.channel.a')
     # verify ignored receivers
     verify_callback_not_received_message('prefixed.jurisdiction.channel.a')
 
@@ -252,13 +248,13 @@ def test(
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "obj": "hello world",
+        "obj": "unsubscribe from unprefixed topics",
         "receiver": channel_api_a.sender
     }
 
     message = post_message(channel_api_b, message)
     # verify expected receivers
-    verify_callback_message_received(message, 'url.jurisdiction.channel.a')
+    verify_callback_message_received(channel_api_a, message, 'url.jurisdiction.channel.a')
     # verify ignored receivers
     verify_callback_not_received_message('unprefixed.jurisdiction.channel.a')
     verify_callback_not_received_message('prefixed.jurisdiction.channel.a')
@@ -278,7 +274,7 @@ def test(
     message = {
         "subject": "subject",
         "predicate": "predicate",
-        "obj": "hello world",
+        "obj": "unsubscribe from prefixed canonical url topics",
         "receiver": channel_api_a.sender
     }
 

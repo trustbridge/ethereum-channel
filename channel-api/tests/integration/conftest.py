@@ -10,6 +10,7 @@ NOTIFICATIONS_REPO = env_queue_config('NOTIFICATIONS_REPO')
 DELIVERY_OUTBOX_REPO = env_queue_config('DELIVERY_OUTBOX_REPO')
 SUBSCRIPTIONS_REPO = env_s3_config('SUBSCRIPTIONS_REPO')
 CHANNEL_REPO = env_queue_config('CHANNEL_REPO')
+MESSAGES_REPO = env_queue_config('MESSAGES_REPO')
 ENDPOINT = env('ENDPOINT', default='AU')
 
 
@@ -39,6 +40,14 @@ def subscriptions_repo():
 @pytest.fixture(scope='function')
 def channel_repo():
     repo = repos.Channel(CHANNEL_REPO)
+    repo.WAIT_FOR_MESSAGE_SECONDS = 1
+    repo._unsafe_method__clear()
+    yield repo
+
+
+@pytest.fixture(scope='function')
+def messages_repo():
+    repo = repos.Messages(MESSAGES_REPO)
     repo.WAIT_FOR_MESSAGE_SECONDS = 1
     repo._unsafe_method__clear()
     yield repo

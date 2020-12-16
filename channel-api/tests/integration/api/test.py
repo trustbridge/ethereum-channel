@@ -10,9 +10,8 @@ import pytest
 from libtrustbridge.websub.domain import Pattern
 
 
-def test_post_get_message(client, app):
+def test_post_message(client, app):
     # testing message with sender property set
-
     message = {
         "subject": "subject",
         "predicate": "predicate",
@@ -24,16 +23,14 @@ def test_post_get_message(client, app):
     response = client.post('/messages', json=message)
     assert response.status_code == HTTPStatus.OK
     assert 'id' in response.json
-    assert response.json['id']
-    assert isinstance(response.json['id'], str)
+    assert response.json['id'] is None
     assert 'status' in response.json
-    assert response.json['status'] == 'received'
+    assert response.json['status'] == 'sending'
     message = {
         **message,
         'sender': app.config.SENDER
     }
     assert response.json['message'] == message
-    message_id = response.json['id']
 
     # testing message without sender property, should be added automatically
 
@@ -47,26 +44,17 @@ def test_post_get_message(client, app):
     response = client.post('/messages', json=message)
     assert response.status_code == HTTPStatus.OK
     assert 'id' in response.json
-    assert response.json['id']
-    assert isinstance(response.json['id'], str)
+    assert response.json['id'] is None
     assert 'status' in response.json
-    assert response.json['status'] == 'received'
+    assert response.json['status'] == 'sending'
     message = {
         **message,
         'sender': app.config.SENDER
     }
     assert response.json['message'] == message
-    message_id = response.json['id']
 
-    # testing that message added to the blockchain
-    response = client.get(f'/messages/{message_id}')
-    assert response.status_code == HTTPStatus.OK
-    assert response.json == {
-        'id': message_id,
-        'message': message,
-        'status': 'received'
-    }
 
+def test_get_message(client, app):
     # testing that non existing message returns 404
     message_id = uuid.uuid4().hex
     response = client.get(f'/messages/{message_id}')

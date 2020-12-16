@@ -18,11 +18,13 @@ awslocal sqs create-queue --queue-name "channel-dev" --output text > /dev/null
 awslocal sqs create-queue --queue-name "notifications-gb" --output text > /dev/null
 awslocal sqs create-queue --queue-name "delivery-outbox-gb" --output text > /dev/null
 awslocal sqs create-queue --queue-name "channel-gb" --output text > /dev/null
+awslocal sqs create-queue --queue-name "messages-gb" --output text > /dev/null
 
 # SENDER "AU" system test queues
 awslocal sqs create-queue --queue-name "notifications-au" --output text > /dev/null
 awslocal sqs create-queue --queue-name "delivery-outbox-au" --output text > /dev/null
 awslocal sqs create-queue --queue-name "channel-au" --output text > /dev/null
+awslocal sqs create-queue --queue-name "messages-au" --output text > /dev/null
 
 echo "Done"
 echo "Creating buckets..."

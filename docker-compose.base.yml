@@ -61,6 +61,11 @@ x-services:
     container_name: tec-channel-api-callback-spreader
     command: callback-spreader-processor
 
+  channel-api-message-sender: &channel-api-message-sender
+    <<: *channel-api
+    container_name: tec-channel-api-message-sender
+    command: message-sender-processor
+
   channel-api-callback-server: &channel-api-callback-server
     <<: *channel-api
     container_name: tec-channel-api-callback-server
