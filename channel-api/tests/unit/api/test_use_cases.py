@@ -9,15 +9,9 @@ from src.api import use_cases
 
 
 def test_SendMessageUseCase():
-    pk = "private_key"
-    contract = mock.MagicMock()
-    web3 = mock.MagicMock()
+    messages_repo = mock.MagicMock()
     sender = 'AU'
-    use_case = use_cases.SendMessageUseCase(
-        web3=web3,
-        contract=contract,
-        contract_owner_private_key=pk
-    )
+    use_case = use_cases.SendMessageUseCase(messages_repo=messages_repo, sender=sender)
     message = {
         'subject': 'subject',
         'predicate': 'predicate',
@@ -31,28 +25,20 @@ def test_SendMessageUseCase():
 
     # invalid message structure
     with pytest.raises(use_cases.BadParametersError):
-        use_case.execute({'message': {'text': 'Hello world!'}}, sender)
-    contract.functions.send.assert_not_called()
+        use_case.execute({'message': {'text': 'Hello world!'}})
+    messages_repo.post_job.assert_not_called()
 
     with pytest.raises(use_cases.BadParametersError):
-        use_case.execute({**message, 'sender': 'GB'}, sender)
-    contract.functions.send.assert_not_called()
+        use_case.execute({**message, 'sender': 'GB'})
+    messages_repo.post_job.assert_not_called()
 
     # valid message structure
-    web3.eth.sendRawTransaction().hex.return_value = 'transaction_hash'
-    result = use_case.execute(message, sender)
-
-    # checking general flow of the operation, call method, sign transaction, send transaction
-    contract.functions.send.assert_called_once_with(complete_message)
-    contract.functions.send().buildTransaction.assert_called_once()
-    tx = contract.functions.send().buildTransaction()
-    web3.eth.account.sign_transaction.assert_called_once_with(tx, private_key=pk)
-    signed_tx = web3.eth.account.sign_transaction()
-    web3.eth.sendRawTransaction.assert_called_with(signed_tx.rawTransaction)
+    result = use_case.execute(message)
+    messages_repo.post_job.assert_called_once_with(complete_message)
 
     assert result == {
-        'id': 'transaction_hash',
-        'status': constants.MessageStatus.RECEIVED,
+        'id': None,
+        'status': constants.MessageStatus.SENDING,
         'message': complete_message
     }
 

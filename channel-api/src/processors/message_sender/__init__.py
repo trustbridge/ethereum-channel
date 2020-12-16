@@ -22,6 +22,7 @@ def MessageSender(config: Box = None):
         sender_private_key=config.SENDER_ACCOUNT_PRIVATE_KEY,
         gas_price_strategy=config.BLOCKCHAIN_GAS_PRICE_STRATEGY,
         gas_price_refresh_rate=config.BLOCKCHAIN_GAS_PRICE_REFRESH_RATE,
+        gas_price_increase_factor=config.BLOCKCHAIN_GAS_PRICE_INCREASE_FACTOR,
         messages_repo=messages_repo
     )
     return SelfIteratingProcessor(use_case=use_case)
