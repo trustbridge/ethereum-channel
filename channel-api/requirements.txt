@@ -57,7 +57,7 @@ python-baseconv==1.2.2
 python-box==5.1.1
 python-dateutil==2.8.1
 pytz==2020.1
-PyYAML==5.3.1
+PyYAML==5.4
 requests==2.24.0
 rlp==2.0.0
 rusty-rlp==0.1.15
