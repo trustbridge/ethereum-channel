@@ -43,7 +43,7 @@ parsimonious==0.8.1
 pluggy==0.13.1
 prance==0.19.0
 protobuf==3.13.0
-py==1.9.0
+py==1.10.0
 py-cid==0.2.1
 py-multibase==1.0.1
 py-multicodec==0.1.3
